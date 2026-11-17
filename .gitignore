@@ -1,0 +1,23 @@
+node_modules
+dist
+dist-ssr
+*.local
+.env
+.env.*
+!.env.example
+# design source export (large, kept locally)
+*.zip
+design/Frontend Challenge.png
+# playwright / lighthouse outputs
+test-results
+playwright-report
+blob-report
+playwright/.cache
+.lighthouseci
+# editor
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.log
+lighthouse/*/
