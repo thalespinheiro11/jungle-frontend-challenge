@@ -1,6 +1,7 @@
 import { useQueryClient, type QueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
 
+import { invalidateCartsWithNft } from '@/features/cart/api'
 import { catalogKeys } from '@/features/catalog/api'
 import type { Nft, NftSummary, NftUpdatedEvent, Paginated } from '@/lib/api/contracts'
 
@@ -62,6 +63,8 @@ export function useRealtimeSync(token: string | null, enabled = true) {
     const onNftUpdated = (event: NftUpdatedEvent) => {
       if (!seen.add(event.id)) return
       applyNftUpdated(queryClient, event)
+      // Carts carry server-computed quotes: refetch instead of patching money locally.
+      void invalidateCartsWithNft(queryClient, event.payload.id)
     }
     const onConnect = () => {
       if (hasConnected) {

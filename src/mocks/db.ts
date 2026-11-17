@@ -1,4 +1,4 @@
-import type { Nft, NftUpdatedEvent } from '@/lib/api/contracts'
+import type { EditionId, Nft, NftUpdatedEvent } from '@/lib/api/contracts'
 
 import { buildNftFixtures, minAvailablePrice } from './fixtures/nfts'
 import { buildUserFixtures, type MockUser } from './fixtures/users'
@@ -10,7 +10,7 @@ import { buildUserFixtures, type MockUser } from './fixtures/users'
  */
 
 const STORAGE_KEY = 'kurio:mocks:db'
-const SCHEMA_VERSION = 3
+const SCHEMA_VERSION = 4
 
 export const SESSION_TTL_MS = 30 * 60_000
 
@@ -28,6 +28,26 @@ interface DbState {
   sessions: Record<string, MockSession>
   /** userId → NFT ids, most recent first. */
   favorites: Record<string, string[]>
+  carts: Record<string, MockCart>
+}
+
+export interface MockCartLine {
+  id: string
+  nftId: string
+  editionId: EditionId
+  quantity: number
+  /** Unit price the user last saw (at add time or last acknowledgement). */
+  seenUnitPrice: string
+}
+
+export interface MockCart {
+  id: string
+  /** null for guest carts. */
+  ownerId: string | null
+  version: number
+  lines: MockCartLine[]
+  couponCode: string | null
+  updatedAt: string
 }
 
 type DbEvent = NftUpdatedEvent
@@ -40,6 +60,7 @@ function seed(): DbState {
     users: Object.fromEntries(buildUserFixtures().map((user) => [user.id, user])),
     sessions: {},
     favorites: {},
+    carts: {},
   }
 }
 
@@ -155,6 +176,35 @@ export const db = {
     },
     remove(userId: string, nftId: string) {
       state.favorites[userId] = (state.favorites[userId] ?? []).filter((id) => id !== nftId)
+      persist()
+    },
+  },
+
+  carts: {
+    find: (id: string): MockCart | undefined => state.carts[id],
+    /** Returns the cart, creating an empty one on first use. */
+    ensure(id: string, ownerId: string | null): MockCart {
+      state.carts[id] ??= {
+        id,
+        ownerId,
+        version: 0,
+        lines: [],
+        couponCode: null,
+        updatedAt: new Date().toISOString(),
+      }
+      return state.carts[id]
+    },
+    /** Applies a change and bumps the version (persisted). */
+    update(cart: MockCart, change: (cart: MockCart) => void): MockCart {
+      change(cart)
+      cart.version += 1
+      cart.updatedAt = new Date().toISOString()
+      state.carts[cart.id] = cart
+      persist()
+      return cart
+    },
+    remove(id: string) {
+      delete state.carts[id]
       persist()
     },
   },

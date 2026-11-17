@@ -4,8 +4,10 @@ import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useAddToCart } from '@/features/cart/api'
 import { FavoriteButton } from '@/features/favorites/favorite-button'
 import type { Nft } from '@/lib/api/contracts'
+import { ApiError } from '@/lib/api/http'
 import { formatEth } from '@/lib/money'
 
 import { usePurchaseSelection } from '../use-purchase-selection'
@@ -22,8 +24,27 @@ export function NftDetailView({ nft }: { nft: Nft }) {
   const { edition, soldOut } = selection
   const unitPrice = edition?.price ?? nft.price
 
-  // Cart lands in the next step; until then the action says so instead of faking success.
-  const onBuy = () => toast.info('O carrinho está em construção — a compra chega na próxima etapa.')
+  const addToCart = useAddToCart()
+  /** Adds the selected edition/quantity; "Comprar" goes to the cart, the cart icon stays here. */
+  const add = (goToCart: boolean) => {
+    if (!edition) return
+    addToCart.mutate(
+      { nftId: nft.id, editionId: edition.id, quantity: selection.quantity },
+      {
+        onSuccess: () => {
+          if (goToCart) void router.navigate({ to: '/cart' })
+          else
+            toast.success(`${nft.name} adicionado ao carrinho.`, {
+              action: { label: 'Ver carrinho', onClick: () => void router.navigate({ to: '/cart' }) },
+            })
+        },
+        onError: (error) =>
+          toast.error(error instanceof ApiError ? error.message : 'Não foi possível adicionar ao carrinho.'),
+      },
+    )
+  }
+  const onBuy = () => add(true)
+  const buying = addToCart.isPending
 
   const goBack = () => (window.history.length > 1 ? router.history.back() : void router.navigate({ to: '/' }))
 
@@ -98,7 +119,7 @@ export function NftDetailView({ nft }: { nft: Nft }) {
             <div className="mt-4 hidden flex-wrap items-center justify-between gap-4 md:flex">
               <QuantityStepper value={selection.quantity} max={selection.max} onChange={selection.setQuantity} disabled={soldOut} />
               <div className="flex gap-2">
-                <Button className="h-10 w-[130px] font-bold" onClick={onBuy} disabled={soldOut}>
+                <Button className="h-10 w-[130px] font-bold" onClick={onBuy} disabled={soldOut || buying}>
                   COMPRAR
                 </Button>
                 <FavoriteButton nft={nft} className="border-primary text-primary h-10 rounded-md border px-4 text-sm">
@@ -133,10 +154,10 @@ export function NftDetailView({ nft }: { nft: Nft }) {
           </p>
         </div>
         <div className="mt-4 flex gap-3">
-          <Button className="h-14 flex-1 rounded-3xl text-base font-bold" onClick={onBuy} disabled={soldOut}>
+          <Button className="h-14 flex-1 rounded-3xl text-base font-bold" onClick={onBuy} disabled={soldOut || buying}>
             Comprar NFT
           </Button>
-          <Button variant="outline" className="size-14 rounded-full" onClick={onBuy} disabled={soldOut} aria-label="Adicionar ao carrinho">
+          <Button variant="outline" className="size-14 rounded-full" onClick={() => add(false)} disabled={soldOut || buying} aria-label="Adicionar ao carrinho">
             <ShoppingCart aria-hidden />
           </Button>
         </div>

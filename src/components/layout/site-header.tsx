@@ -2,6 +2,7 @@ import { Link, useRouterState } from '@tanstack/react-router'
 import { Heart, Home, LogIn, Search, ShoppingCart, User } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
+import { useCart } from '@/features/cart/api'
 import { useSession } from '@/features/session/hooks'
 import { UserMenu } from '@/features/session/components/user-menu'
 import { cn } from '@/lib/utils'
@@ -14,9 +15,8 @@ const NAV = [
   { label: 'Aprenda', disabled: true },
 ] as const
 
-/** Cart count comes from the cart query once the cart feature lands. */
 function CartLink({ className }: { className?: string }) {
-  const count = 0
+  const count = useCart().data?.summary.itemCount ?? 0
   return (
     <Link
       to="/cart"
@@ -37,7 +37,7 @@ export function SiteHeader() {
   const { user, isPending } = useSession()
   const pathname = useRouterState({ select: (s) => s.location.pathname })
   // Auth screens and the NFT detail (own sticky purchase bar) have no bottom nav on mobile.
-  const hideMobileNav = pathname === '/login' || pathname === '/signup' || pathname.startsWith('/nfts/')
+  const hideMobileNav = pathname === '/login' || pathname === '/signup' || pathname === '/cart' || pathname.startsWith('/nfts/')
 
   return (
     <>

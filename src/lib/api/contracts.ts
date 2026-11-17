@@ -21,6 +21,8 @@ export type ApiErrorCode =
   | 'OUT_OF_STOCK'
   | 'PRICE_CHANGED'
   | 'IDEMPOTENCY_CONFLICT'
+  | 'COUPON_INVALID'
+  | 'COUPON_EXPIRED'
   | 'TRANSIENT'
 
 export interface ApiErrorBody {
@@ -145,6 +147,66 @@ export interface CatalogFacets {
   categories: FacetCount<NftCategory>[]
   networks: FacetCount<Network>[]
   priceRange: { min: EthAmount; max: EthAmount }
+}
+
+// ---------- Cart & quote ----------
+
+/**
+ * The cart lives server-side for everyone: authenticated users own one cart; visitors use a
+ * guest cart identified by the `X-Cart-Id` header, merged into the user's cart at login.
+ * Every cart response carries a fresh quote (current prices, availability, coupon, fees),
+ * so the UI never computes money on its own.
+ */
+export interface CartLine {
+  id: string
+  nftId: string
+  editionId: EditionId
+  editionLabel: string
+  name: string
+  tokenId: string
+  image: string
+  imageAlt: string
+  /** Current unit price for the edition. */
+  unitPrice: EthAmount
+  quantity: number
+  /** Units still purchasable (edition availability capped by the per-order limit). */
+  maxQuantity: number
+  lineTotal: EthAmount
+  /** Set when the price changed since the user added / last acknowledged it. */
+  priceChange: { from: EthAmount; to: EthAmount } | null
+  /** Availability problem that blocks checkout until the user adjusts the line. */
+  issue: 'sold_out' | 'insufficient' | null
+}
+
+export interface CartCoupon {
+  code: string
+  label: string
+}
+
+export interface CartSummary {
+  itemCount: number
+  subtotal: EthAmount
+  discount: EthAmount
+  networkFee: EthAmount
+  total: EthAmount
+}
+
+export interface Cart {
+  id: string
+  /** Increments on every change; lets the client ignore out-of-order responses. */
+  version: number
+  lines: CartLine[]
+  coupon: CartCoupon | null
+  summary: CartSummary
+  /** True when some line has a price change or availability issue to resolve. */
+  needsReview: boolean
+  updatedAt: IsoDate
+}
+
+export interface AddCartItemRequest {
+  nftId: string
+  editionId: EditionId
+  quantity: number
 }
 
 // ---------- Session ----------

@@ -11,6 +11,7 @@ export function QuantityStepper({
   label = 'Quantidade',
   showLabel = false,
   disabled = false,
+  compact = false,
   className,
 }: {
   value: number
@@ -19,15 +20,19 @@ export function QuantityStepper({
   label?: string
   showLabel?: boolean
   disabled?: boolean
+  /** Smaller controls for dense rows (mobile cart). */
+  compact?: boolean
   className?: string
 }) {
   const id = useId()
   const clamp = (n: number) => Math.min(Math.max(1, Math.trunc(n) || 1), Math.max(1, max))
-  const buttonClass =
-    'bg-primary text-primary-foreground grid size-8 place-items-center rounded-full disabled:opacity-40 md:h-10 md:w-8'
+  const buttonClass = cn(
+    'bg-primary text-primary-foreground grid place-items-center rounded-full disabled:opacity-40',
+    compact ? 'size-7' : 'size-8 md:h-10 md:w-8',
+  )
 
   return (
-    <div className={cn('flex items-center gap-3', className)}>
+    <div className={cn('flex items-center', compact ? 'gap-1.5' : 'gap-3', className)}>
       <label htmlFor={id} className={cn('text-sm font-medium', !showLabel && 'sr-only')}>
         {label}
       </label>
@@ -51,7 +56,7 @@ export function QuantityStepper({
         value={value}
         disabled={disabled}
         onChange={(e) => onChange(clamp(Number(e.target.value)))}
-        className="w-8 [appearance:textfield] bg-transparent text-center text-lg [&::-webkit-inner-spin-button]:appearance-none"
+        className={cn(compact ? 'w-6' : 'w-8', '[appearance:textfield] bg-transparent text-center text-lg [&::-webkit-inner-spin-button]:appearance-none')}
       />
       <button
         type="button"

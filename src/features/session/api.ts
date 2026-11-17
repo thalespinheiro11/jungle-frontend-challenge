@@ -48,11 +48,21 @@ export async function clearPrivateData(queryClient: QueryClient) {
   queryClient.removeQueries({ queryKey: privateKeys.all })
 }
 
-/** Installs a freshly issued session (login / signup). Handles user switch. */
-export async function startSession(queryClient: QueryClient, session: Session) {
+/**
+ * Installs a freshly issued session (login / signup). Handles user switch.
+ * `prepare` runs with the new token already active but *before* the session is published to
+ * the cache — i.e. before any component switches to the user's private queries. Used to
+ * merge the guest cart without racing the user's first cart fetch.
+ */
+export async function startSession(
+  queryClient: QueryClient,
+  session: Session,
+  prepare?: () => Promise<void>,
+) {
   const previous = queryClient.getQueryData<Session | null>(sessionKeys.current)
   if (previous && previous.user.id !== session.user.id) await clearPrivateData(queryClient)
   tokenStore.set(session.accessToken)
+  await prepare?.()
   queryClient.setQueryData(sessionKeys.current, session)
 }
 

@@ -46,6 +46,19 @@ npx playwright install chromium
 As senhas ficam no mock apenas como hash SHA-256 com sal. Sessões duram 30 minutos; o token
 fica no `localStorage` e a sessão é revalidada na API a cada refresh e a cada navegação privada.
 
+## Cupons de demonstração
+
+| Cupom | Resultado |
+| --- | --- |
+| `KURIO10` | 10% de desconto no subtotal |
+| `LANCAMENTO` | 0.05 ETH de desconto |
+| `GENESIS2025` | Expirado (erro "Este cupom expirou em 31/01/2026.") |
+| qualquer outro | Inválido |
+
+O carrinho fica no servidor (mock): visitantes usam um carrinho identificado pelo header
+`X-Cart-Id`, que é mesclado ao carrinho do usuário no login. Subtotal, desconto, taxa de rede
+(0.016 ETH) e total vêm sempre da API.
+
 ## Cenários de mock
 
 Selecione com `?scenario=<nome>` na URL (fica salvo) ou pelo console com `window.__mocks.setScenario('<nome>')`.
