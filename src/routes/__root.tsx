@@ -1,10 +1,12 @@
 import type { QueryClient } from '@tanstack/react-query'
-import { createRootRouteWithContext, Outlet } from '@tanstack/react-router'
+import { createRootRouteWithContext, Outlet, useRouterState } from '@tanstack/react-router'
 
 import { SiteFooter } from '@/components/layout/site-footer'
 import { SiteHeader } from '@/components/layout/site-header'
 import { NotFound } from '@/components/layout/route-states'
 import { Toaster } from '@/components/ui/sonner'
+import { useSession } from '@/features/session/hooks'
+import { useSessionExpiry } from '@/features/session/use-session-expiry'
 import { useRealtimeSync } from '@/lib/realtime/use-realtime-sync'
 
 export interface RouterContext {
@@ -17,7 +19,12 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 })
 
 function RootLayout() {
-  useRealtimeSync()
+  const { session, isPending } = useSession()
+  // Wait for the stored session to resolve so the first socket already carries the token.
+  useRealtimeSync(session?.accessToken ?? null, !isPending)
+  useSessionExpiry()
+  const pathname = useRouterState({ select: (s) => s.location.pathname })
+  const isAuthScreen = pathname === '/login' || pathname === '/signup'
 
   return (
     <div className="flex min-h-dvh flex-col">
@@ -31,7 +38,9 @@ function RootLayout() {
       <main id="conteudo" tabIndex={-1} className="flex-1 outline-none">
         <Outlet />
       </main>
-      <SiteFooter />
+      <div className={isAuthScreen ? 'hidden md:block' : undefined}>
+        <SiteFooter />
+      </div>
       <Toaster position="bottom-right" />
     </div>
   )

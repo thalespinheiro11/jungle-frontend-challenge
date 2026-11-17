@@ -3,26 +3,24 @@ import { io, type Socket } from 'socket.io-client'
 import { env } from '@/lib/env'
 
 /**
- * Single Socket.IO client for the app. Websocket-only transport: it is what the MSW
+ * Creates the app's Socket.IO client. Websocket-only transport: it is what the MSW
  * socket.io binding can intercept (no HTTP long-polling).
- * The socket is created lazily and owned by the session lifecycle (connect on login,
- * disconnect and release listeners on logout or user switch).
+ * One socket per session: the token travels in the handshake `auth` payload, and a new
+ * socket (with fresh listeners and dedupe memory) is created whenever the user changes,
+ * so events from a previous session can never reach the next user's cache.
  */
-let socket: Socket | null = null
-
-export function getSocket(): Socket {
-  socket ??= io(env.socketUrl, {
+export function createSocket(token: string | null): Socket {
+  return io(env.socketUrl, {
     transports: ['websocket'],
     autoConnect: false,
     reconnection: true,
     reconnectionDelay: 500,
     reconnectionDelayMax: 4_000,
+    auth: token ? { token } : {},
   })
-  return socket
 }
 
-export function disposeSocket() {
-  socket?.removeAllListeners()
-  socket?.disconnect()
-  socket = null
+export function disposeSocket(socket: Socket) {
+  socket.removeAllListeners()
+  socket.disconnect()
 }

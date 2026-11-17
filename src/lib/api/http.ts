@@ -87,9 +87,21 @@ http.interceptors.request.use((config) => {
   return config
 })
 
+/** Called when an authenticated request is rejected because the session is gone/expired. */
+let onAuthFailure: (error: ApiError) => void = () => {}
+export function setAuthFailureHandler(handler: (error: ApiError) => void) {
+  onAuthFailure = handler
+}
+
 http.interceptors.response.use(
   (response) => response,
-  (error: unknown) => Promise.reject(toApiError(error)),
+  (error: unknown) => {
+    const apiError = toApiError(error)
+    const sentToken =
+      error instanceof AxiosError && Boolean(error.config?.headers?.get?.('Authorization'))
+    if (sentToken && apiError.isAuthError) onAuthFailure(apiError)
+    return Promise.reject(apiError)
+  },
 )
 
 /** Typed helpers so callers get `T` instead of AxiosResponse<T>. */

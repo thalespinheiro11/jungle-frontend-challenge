@@ -36,10 +36,21 @@ npx playwright install chromium
 | `VITE_API_URL` | `/api` | Base das chamadas REST |
 | `VITE_SOCKET_URL` | origem da página | Servidor Socket.IO |
 
+## Credenciais fictícias
+
+| Usuário | E-mail | Senha |
+| --- | --- | --- |
+| Ana Souza (`ana.colecionadora`) | `ana@kurio.dev` | `Kurio@123` |
+| Bruno Lima (`bruno.nft`) | `bruno@kurio.dev` | `Kurio@123` |
+
+As senhas ficam no mock apenas como hash SHA-256 com sal. Sessões duram 30 minutos; o token
+fica no `localStorage` e a sessão é revalidada na API a cada refresh e a cada navegação privada.
+
 ## Cenários de mock
 
 Selecione com `?scenario=<nome>` na URL (fica salvo) ou pelo console com `window.__mocks.setScenario('<nome>')`.
 `window.__mocks.reset()` restaura os dados iniciais e o cenário padrão.
+`window.__mocks.expireSessions()` expira todas as sessões ativas (simula expiração no meio do uso).
 
 | Cenário | Comportamento |
 | --- | --- |

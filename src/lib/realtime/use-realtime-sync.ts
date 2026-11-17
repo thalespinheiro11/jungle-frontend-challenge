@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 import { catalogKeys } from '@/features/catalog/api'
 import type { Nft, NftSummary, NftUpdatedEvent, Paginated } from '@/lib/api/contracts'
 
-import { getSocket } from './socket'
+import { createSocket, disposeSocket } from './socket'
 
 /** Remembers recently seen event ids so duplicates are applied at most once. */
 class SeenEvents {
@@ -45,14 +45,17 @@ export function applyNftUpdated(queryClient: QueryClient, event: NftUpdatedEvent
 }
 
 /**
- * Bridges Socket.IO events into the TanStack Query cache for the app's lifetime.
- * On reconnect it refetches active catalog queries, reconciling anything missed while offline.
+ * Bridges Socket.IO events into the TanStack Query cache.
+ * The socket lives as long as the session token: login, logout and user switch tear it
+ * down (releasing listeners) and open a new one. On reconnect it refetches active catalog
+ * queries, reconciling anything missed while offline.
  */
-export function useRealtimeSync() {
+export function useRealtimeSync(token: string | null, enabled = true) {
   const queryClient = useQueryClient()
 
   useEffect(() => {
-    const socket = getSocket()
+    if (!enabled) return
+    const socket = createSocket(token)
     const seen = new SeenEvents()
     let hasConnected = false
 
@@ -71,10 +74,6 @@ export function useRealtimeSync() {
     socket.on('nft.updated', onNftUpdated)
     socket.connect()
 
-    return () => {
-      socket.off('connect', onConnect)
-      socket.off('nft.updated', onNftUpdated)
-      socket.disconnect()
-    }
-  }, [queryClient])
+    return () => disposeSocket(socket)
+  }, [queryClient, token, enabled])
 }

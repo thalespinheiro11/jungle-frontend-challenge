@@ -14,6 +14,7 @@ export type ApiErrorCode =
   | 'VALIDATION_ERROR'
   | 'UNAUTHENTICATED'
   | 'SESSION_EXPIRED'
+  | 'INVALID_CREDENTIALS'
   | 'FORBIDDEN'
   | 'NOT_FOUND'
   | 'CONFLICT'
@@ -141,6 +142,19 @@ export interface Session {
   user: SessionUser
   accessToken: string
   expiresAt: IsoDate
+}
+
+/** POST /auth/login */
+export interface LoginRequest {
+  email: string
+  password: string
+}
+
+/** POST /auth/signup */
+export interface SignupRequest {
+  username: string
+  email: string
+  password: string
 }
 
 // ---------- Realtime ----------

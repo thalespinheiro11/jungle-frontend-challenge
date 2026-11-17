@@ -28,6 +28,10 @@ const controls = {
     mockConfig.setScenario('default')
     resetNetworkState()
   },
+  /** Expires every active session now (next authenticated call gets SESSION_EXPIRED). */
+  expireSessions() {
+    db.sessions.expireAll()
+  },
   getNft(id: string) {
     return db.nfts.find(id)
   },

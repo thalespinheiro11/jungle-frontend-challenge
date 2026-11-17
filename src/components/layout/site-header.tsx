@@ -1,7 +1,9 @@
-import { Link } from '@tanstack/react-router'
+import { Link, useRouterState } from '@tanstack/react-router'
 import { Heart, Home, LogIn, Search, ShoppingCart, User } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
+import { useSession } from '@/features/session/hooks'
+import { UserMenu } from '@/features/session/components/user-menu'
 import { cn } from '@/lib/utils'
 
 const NAV = [
@@ -32,6 +34,10 @@ function CartLink({ className }: { className?: string }) {
 }
 
 export function SiteHeader() {
+  const { user, isPending } = useSession()
+  const pathname = useRouterState({ select: (s) => s.location.pathname })
+  const isAuthScreen = pathname === '/login' || pathname === '/signup'
+
   return (
     <>
       {/* Desktop / tablet header */}
@@ -76,32 +82,39 @@ export function SiteHeader() {
               <Search className="size-6" aria-hidden />
             </Link>
             <CartLink />
-            <Button asChild className="ml-3 h-9 px-3">
-              <Link to="/login" search={{ redirect: undefined }}>
-                <LogIn aria-hidden />
-                Entrar
-              </Link>
-            </Button>
+            {user ? (
+              <UserMenu user={user} />
+            ) : isPending ? (
+              // Reserve the button's space while a stored session is re-validated (no CLS).
+              <span className="ml-3 h-9 w-[92px]" aria-hidden />
+            ) : (
+              <Button asChild className="ml-3 h-9 px-3">
+                <Link to="/login" search={{ redirect: undefined }}>
+                  <LogIn aria-hidden />
+                  Entrar
+                </Link>
+              </Button>
+            )}
           </div>
         </div>
       </header>
 
-      {/* Mobile bottom navigation (mobile frames have no top header) */}
-      <nav
+      {/* Mobile bottom navigation (mobile frames have no top header; auth screens have none) */}
+      {!isAuthScreen && <nav
         aria-label="Principal"
         className="bg-card fixed inset-x-0 bottom-0 z-40 flex h-16 items-center justify-around rounded-t-3xl pb-[env(safe-area-inset-bottom)] md:hidden"
       >
         <Link to="/" aria-label="Início" className="text-foreground data-[status=active]:text-primary p-3" activeOptions={{ exact: true }}>
           <Home className="size-5" aria-hidden />
         </Link>
-        <Link to="/account/profile" aria-label="Favoritos" className="p-3">
+        <Link to="/account/profile" hash="favoritos" aria-label="Favoritos" className="p-3">
           <Heart className="size-5" aria-hidden />
         </Link>
         <CartLink className="data-[status=active]:text-primary" />
         <Link to="/account/profile" aria-label="Minha conta" className="data-[status=active]:text-primary p-3">
           <User className="size-5" aria-hidden />
         </Link>
-      </nav>
+      </nav>}
     </>
   )
 }

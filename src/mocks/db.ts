@@ -1,6 +1,7 @@
 import type { Nft, NftUpdatedEvent } from '@/lib/api/contracts'
 
 import { buildNftFixtures, minAvailablePrice } from './fixtures/nfts'
+import { buildUserFixtures, type MockUser } from './fixtures/users'
 
 /**
  * In-memory mock database, persisted to localStorage so refreshes keep state.
@@ -9,11 +10,22 @@ import { buildNftFixtures, minAvailablePrice } from './fixtures/nfts'
  */
 
 const STORAGE_KEY = 'kurio:mocks:db'
-const SCHEMA_VERSION = 1
+const SCHEMA_VERSION = 2
+
+export const SESSION_TTL_MS = 30 * 60_000
+
+export interface MockSession {
+  token: string
+  userId: string
+  createdAt: string
+  expiresAt: string
+}
 
 interface DbState {
   schema: number
   nfts: Record<string, Nft>
+  users: Record<string, MockUser>
+  sessions: Record<string, MockSession>
 }
 
 type DbEvent = NftUpdatedEvent
@@ -23,6 +35,8 @@ function seed(): DbState {
   return {
     schema: SCHEMA_VERSION,
     nfts: Object.fromEntries(buildNftFixtures().map((nft) => [nft.id, nft])),
+    users: Object.fromEntries(buildUserFixtures().map((user) => [user.id, user])),
+    sessions: {},
   }
 }
 
@@ -87,6 +101,45 @@ export const db = {
         },
       })
       return next
+    },
+  },
+
+  users: {
+    find: (id: string): MockUser | undefined => state.users[id],
+    findByEmail: (email: string) =>
+      Object.values(state.users).find((u) => u.email.toLowerCase() === email.toLowerCase()),
+    findByUsername: (username: string) =>
+      Object.values(state.users).find((u) => u.username.toLowerCase() === username.toLowerCase()),
+    insert(user: MockUser) {
+      state.users[user.id] = user
+      persist()
+      return user
+    },
+  },
+
+  sessions: {
+    find: (token: string): MockSession | undefined => state.sessions[token],
+    create(userId: string): MockSession {
+      const now = Date.now()
+      const session: MockSession = {
+        token: `tok_${crypto.randomUUID()}`,
+        userId,
+        createdAt: new Date(now).toISOString(),
+        expiresAt: new Date(now + SESSION_TTL_MS).toISOString(),
+      }
+      state.sessions[session.token] = session
+      persist()
+      return session
+    },
+    revoke(token: string) {
+      delete state.sessions[token]
+      persist()
+    },
+    /** Test/demo control: makes every active session expire now. */
+    expireAll() {
+      const past = new Date(Date.now() - 1_000).toISOString()
+      for (const session of Object.values(state.sessions)) session.expiresAt = past
+      persist()
     },
   },
 
