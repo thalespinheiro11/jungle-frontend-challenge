@@ -21,9 +21,18 @@ const realtime = ws.link(env.socketUrl.replace(/^http/, 'ws'))
 
 const PING_INTERVAL_MS = 20_000
 
+let openConnections = 0
+/** Number of live Socket.IO clients — lets tests wait for the real connection, not a timer. */
+export const realtimeStats = {
+  get connections() {
+    return openConnections
+  },
+}
+
 export const realtimeHandlers = [
   realtime.addEventListener('connection', (connection) => {
     const io = toSocketIo(connection)
+    openConnections++
 
     const heartbeat = setInterval(() => connection.client.send('2'), PING_INTERVAL_MS)
 
@@ -32,6 +41,7 @@ export const realtimeHandlers = [
     })
 
     connection.client.addEventListener('close', () => {
+      openConnections--
       clearInterval(heartbeat)
       unsubscribe()
     })

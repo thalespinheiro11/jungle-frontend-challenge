@@ -22,3 +22,8 @@ export async function loginAs(page: Page, user: (typeof USERS)[keyof typeof USER
 export async function mocksReady(page: Page) {
   await page.waitForFunction(() => Boolean(window.__mocks))
 }
+
+/** Waits until the app's socket.io-client is connected to the mocked server. */
+export async function realtimeReady(page: Page) {
+  await page.waitForFunction(() => (window.__mocks?.realtimeConnections() ?? 0) > 0)
+}

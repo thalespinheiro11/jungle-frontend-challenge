@@ -8,6 +8,7 @@ import { Toaster } from '@/components/ui/sonner'
 import { useSession } from '@/features/session/hooks'
 import { useSessionExpiry } from '@/features/session/use-session-expiry'
 import { useRealtimeSync } from '@/lib/realtime/use-realtime-sync'
+import { cn } from '@/lib/utils'
 
 export interface RouterContext {
   queryClient: QueryClient
@@ -25,9 +26,10 @@ function RootLayout() {
   useSessionExpiry()
   const pathname = useRouterState({ select: (s) => s.location.pathname })
   const isAuthScreen = pathname === '/login' || pathname === '/signup'
+  const isDetail = pathname.startsWith('/nfts/')
 
   return (
-    <div className="flex min-h-dvh flex-col">
+    <div className={cn('flex min-h-dvh flex-col', isDetail && 'pb-40 md:pb-0')}>
       <a
         href="#conteudo"
         className="bg-primary text-primary-foreground sr-only z-50 rounded px-4 py-2 focus:not-sr-only focus:fixed focus:top-2 focus:left-2"

@@ -5,6 +5,7 @@ import type { Nft } from '@/lib/api/contracts'
 import { mockConfig, SCENARIOS, isScenario, type ScenarioName } from './config'
 import { db } from './db'
 import { handlers } from './handlers'
+import { realtimeStats } from './handlers/realtime'
 import { resetNetworkState } from './http-utils'
 
 export const worker = setupWorker(...handlers)
@@ -31,6 +32,10 @@ const controls = {
   /** Expires every active session now (next authenticated call gets SESSION_EXPIRED). */
   expireSessions() {
     db.sessions.expireAll()
+  },
+  /** Live Socket.IO connections (tests wait for > 0 before emitting events). */
+  realtimeConnections() {
+    return realtimeStats.connections
   },
   getNft(id: string) {
     return db.nfts.find(id)

@@ -36,7 +36,8 @@ function CartLink({ className }: { className?: string }) {
 export function SiteHeader() {
   const { user, isPending } = useSession()
   const pathname = useRouterState({ select: (s) => s.location.pathname })
-  const isAuthScreen = pathname === '/login' || pathname === '/signup'
+  // Auth screens and the NFT detail (own sticky purchase bar) have no bottom nav on mobile.
+  const hideMobileNav = pathname === '/login' || pathname === '/signup' || pathname.startsWith('/nfts/')
 
   return (
     <>
@@ -100,7 +101,7 @@ export function SiteHeader() {
       </header>
 
       {/* Mobile bottom navigation (mobile frames have no top header; auth screens have none) */}
-      {!isAuthScreen && <nav
+      {!hideMobileNav && <nav
         aria-label="Principal"
         className="bg-card fixed inset-x-0 bottom-0 z-40 flex h-16 items-center justify-around rounded-t-3xl pb-[env(safe-area-inset-bottom)] md:hidden"
       >

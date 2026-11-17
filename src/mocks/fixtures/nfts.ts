@@ -131,8 +131,34 @@ export function minAvailablePrice(editions: NftEdition[]): string {
   return Decimal.min(...pool).toString()
 }
 
+const REVIEWERS = ['Marina T.', 'Joaquim R.', 'Lia P.', 'Davi M.', 'Helena C.', 'Otávio B.']
+const COMMENTS = [
+  'Arte impecável e procedência verificada. Chegou na carteira em minutos.',
+  'Detalhes incríveis na alta resolução. Vale cada ETH.',
+  'Coleção consistente e criador muito presente na comunidade.',
+  'Ótimo para começar a colecionar; edição bem equilibrada.',
+  'Os atributos raros fazem diferença. Recomendo.',
+]
+
+function buildReviews(rand: () => number, index: number): Nft['reviews'] {
+  return Array.from({ length: 3 }, (_, i) => ({
+    id: `rev_${index}_${i}`,
+    author: REVIEWERS[(index + i) % REVIEWERS.length]!,
+    rating: 4 + (rand() < 0.6 ? 1 : 0),
+    comment: COMMENTS[(index * 2 + i) % COMMENTS.length]!,
+    createdAt: new Date(Date.UTC(2026, 10, 10 - i * 3, 15)).toISOString(),
+  }))
+}
+
+function contractAddress(rand: () => number) {
+  const hex = () => Math.floor(rand() * 0x10000).toString(16).toUpperCase().padStart(4, '0')
+  return `0x${hex()}...${hex()}`
+}
+
 export function buildNftFixtures(): Nft[] {
   const rand = prng(42)
+  // Separate stream so detail-only data never shifts the catalog fixture.
+  const detailRand = prng(7)
   const firstListed = Date.UTC(2026, 10, 15, 12)
 
   return SEED.map((entry, index) => {
@@ -149,6 +175,9 @@ export function buildNftFixtures(): Nft[] {
     if (index < 12) tags.push('new')
     if (index % 4 === 1) tags.push('trending')
     if (index === 1) tags.push('featured')
+    // Two draws previously used for rating/reviews; kept so the catalog stream stays identical.
+    rand()
+    rand()
 
     return {
       id: entry.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
@@ -166,8 +195,11 @@ export function buildNftFixtures(): Nft[] {
       editions,
       tags,
       listedAt,
-      rating: 4 + Math.round(rand() * 10) / 10,
-      reviewsCount: 3 + Math.floor(rand() * 40),
+      // Emerald Ape matches the Figma (4.8 · 19 reviews).
+      rating: index === 0 ? 4.8 : 4 + Math.round(detailRand() * 10) / 10,
+      reviewsCount: index === 0 ? 19 : 3 + Math.floor(detailRand() * 40),
+      reviews: buildReviews(detailRand, index),
+      contractAddress: index === 0 ? '0x7A42...19E8' : contractAddress(detailRand),
       attributes: ATTRIBUTES[entry.art],
       description: `Um colecionável digital finalizado à mão da coleção ${collection}, verificado na ${
         network === 'ethereum' ? 'Ethereum' : network === 'polygon' ? 'Polygon' : 'Solana'

@@ -21,7 +21,7 @@ import { apiError, applyNetwork } from '../http-utils'
 const API = '*/api'
 const DEFAULT_PAGE_SIZE = 9
 
-function toSummary(nft: Nft): NftSummary {
+export function toSummary(nft: Nft): NftSummary {
   const { id, name, image, imageAlt, category, network, price, compareAtPrice, tags, listedAt, version } = nft
   return { id, name, image, imageAlt, category, network, price, compareAtPrice, tags, listedAt, version }
 }
@@ -107,6 +107,22 @@ export const catalogHandlers = [
       },
     }
     return HttpResponse.json(body)
+  }),
+
+  /** "Mais desta coleção": other NFTs of the same collection, newest first. */
+  http.get(`${API}/nfts/:id/related`, async ({ request, params }) => {
+    const failure = await applyNetwork(request, 'nft-related')
+    if (failure) return failure
+
+    const nft = db.nfts.find(String(params.id))
+    if (!nft) return apiError(404, 'NOT_FOUND', 'NFT não encontrado.')
+    const items = db.nfts
+      .all()
+      .filter((n) => n.collection === nft.collection && n.id !== nft.id)
+      .sort((a, b) => b.listedAt.localeCompare(a.listedAt))
+      .slice(0, 10)
+      .map(toSummary)
+    return HttpResponse.json(items)
   }),
 
   http.get(`${API}/nfts/:id`, async ({ request, params }) => {

@@ -56,7 +56,10 @@ export function AuthShell({
               <span aria-hidden className="bg-primary h-6 w-px" />
               <ModeLink mode="signup" active={mode === 'signup'} redirect={redirect} />
             </div>
-            <DialogTitle className="sr-only">{copy.title}</DialogTitle>
+            {/* The dialog is the page's main content here, so its title is the page h1. */}
+            <DialogTitle asChild>
+              <h1 className="sr-only">{copy.title}</h1>
+            </DialogTitle>
             <DialogDescription className="text-foreground mx-auto mt-2 max-w-[400px] text-center text-sm">
               {copy.description}
             </DialogDescription>

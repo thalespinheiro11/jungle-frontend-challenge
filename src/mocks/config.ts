@@ -10,6 +10,7 @@ export const SCENARIOS = {
   'slow-network': 'Latência alta e variável (respostas podem chegar fora de ordem).',
   'server-error': 'Catálogo responde 500 nas primeiras 2 tentativas e depois se recupera.',
   offline: 'Todas as chamadas REST falham como erro de rede.',
+  'favorites-error': 'Favoritar/desfavoritar responde 503 (teste de rollback otimista).',
 } as const
 
 export type ScenarioName = keyof typeof SCENARIOS

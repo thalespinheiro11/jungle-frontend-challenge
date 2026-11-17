@@ -10,7 +10,7 @@ import { buildUserFixtures, type MockUser } from './fixtures/users'
  */
 
 const STORAGE_KEY = 'kurio:mocks:db'
-const SCHEMA_VERSION = 2
+const SCHEMA_VERSION = 3
 
 export const SESSION_TTL_MS = 30 * 60_000
 
@@ -26,6 +26,8 @@ interface DbState {
   nfts: Record<string, Nft>
   users: Record<string, MockUser>
   sessions: Record<string, MockSession>
+  /** userId → NFT ids, most recent first. */
+  favorites: Record<string, string[]>
 }
 
 type DbEvent = NftUpdatedEvent
@@ -37,6 +39,7 @@ function seed(): DbState {
     nfts: Object.fromEntries(buildNftFixtures().map((nft) => [nft.id, nft])),
     users: Object.fromEntries(buildUserFixtures().map((user) => [user.id, user])),
     sessions: {},
+    favorites: {},
   }
 }
 
@@ -139,6 +142,19 @@ export const db = {
     expireAll() {
       const past = new Date(Date.now() - 1_000).toISOString()
       for (const session of Object.values(state.sessions)) session.expiresAt = past
+      persist()
+    },
+  },
+
+  favorites: {
+    list: (userId: string): string[] => state.favorites[userId] ?? [],
+    add(userId: string, nftId: string) {
+      const current = state.favorites[userId] ?? []
+      state.favorites[userId] = [nftId, ...current.filter((id) => id !== nftId)]
+      persist()
+    },
+    remove(userId: string, nftId: string) {
+      state.favorites[userId] = (state.favorites[userId] ?? []).filter((id) => id !== nftId)
       persist()
     },
   },

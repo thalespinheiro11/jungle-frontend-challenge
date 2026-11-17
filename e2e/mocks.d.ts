@@ -22,6 +22,7 @@ interface Window {
     setScenario(name: string): void
     reset(): void
     expireSessions(): void
+    realtimeConnections(): number
     getNft(id: string): MockNft | undefined
     updateNft(id: string, patch: { editions?: MockEdition[]; compareAtPrice?: string | null }): MockNft | undefined
   }

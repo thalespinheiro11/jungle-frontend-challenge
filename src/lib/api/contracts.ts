@@ -87,8 +87,27 @@ export interface Nft extends NftSummary {
   attributes: string[]
   rating: number
   reviewsCount: number
+  /** Most recent reviews (the full count is `reviewsCount`). */
+  reviews: NftReview[]
   editions: NftEdition[]
   gallery: string[]
+  /** Shortened contract address shown in the details tab, e.g. "0x7A42...19E8". */
+  contractAddress: string
+}
+
+export interface NftReview {
+  id: string
+  author: string
+  rating: number
+  comment: string
+  createdAt: IsoDate
+}
+
+// ---------- Favorites ----------
+
+/** GET /me/favorites — the signed-in user's favorites, most recent first. */
+export interface FavoriteList {
+  items: NftSummary[]
 }
 
 export const NFT_SORTS = ['recent', 'price-asc', 'price-desc', 'name'] as const

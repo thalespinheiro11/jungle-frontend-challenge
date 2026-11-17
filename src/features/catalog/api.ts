@@ -39,6 +39,14 @@ export const facetsQuery = () =>
     staleTime: 5 * 60_000,
   })
 
+export const relatedNftsQuery = (id: string) =>
+  queryOptions({
+    queryKey: [...catalogKeys.detail(id), 'related'] as const,
+    queryFn: ({ signal }) =>
+      api.get<NftSummary[]>(`/nfts/${encodeURIComponent(id)}/related`, { signal }),
+    staleTime: 5 * 60_000,
+  })
+
 export const nftDetailQuery = (id: string) =>
   queryOptions({
     queryKey: catalogKeys.detail(id),

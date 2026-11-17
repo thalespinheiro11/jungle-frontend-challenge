@@ -59,6 +59,7 @@ Selecione com `?scenario=<nome>` na URL (fica salvo) ou pelo console com `window
 | `slow-network` | Latência de 0,4–2 s derivada da URL (respostas fora de ordem, deterministicamente) |
 | `server-error` | Catálogo responde 503 duas vezes e depois se recupera |
 | `offline` | Todas as chamadas REST falham como erro de rede |
+| `favorites-error` | Favoritar/desfavoritar responde 503 (o coração volta ao estado anterior) |
 
 ## Estrutura
 

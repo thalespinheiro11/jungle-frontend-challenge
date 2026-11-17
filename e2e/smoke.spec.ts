@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test'
 
+import { realtimeReady } from './support'
+
 test.describe('base da aplicação', () => {
   test('lista o catálogo vindo do MSW', async ({ page }) => {
     await page.goto('/')
@@ -24,12 +26,10 @@ test.describe('base da aplicação', () => {
     await expect(page).toHaveURL(/\/login\?redirect=/)
   })
 
-  test('nft.updated chega pelo Socket.IO e atualiza o preço', async ({ page }) => {
-    await page.goto('/nfts/emerald-ape-042')
+  test('nft.updated chega pelo Socket.IO e atualiza o preço no catálogo', async ({ page }) => {
+    await page.goto('/')
     await expect(page.getByText('1.19 ETH')).toBeVisible()
-    // Wait for the socket.io-client connection before changing the mock server state.
-    await page.waitForFunction(() => document.readyState === 'complete')
-    await page.waitForTimeout(300)
+    await realtimeReady(page)
     await page.evaluate(() => {
       const nft = window.__mocks!.getNft('emerald-ape-042')!
       window.__mocks!.updateNft('emerald-ape-042', {
@@ -38,4 +38,17 @@ test.describe('base da aplicação', () => {
     })
     await expect(page.getByText('1.49 ETH')).toBeVisible()
   })
+
+  for (const path of ['/', '/nfts/emerald-ape-042', '/login', '/signup']) {
+    test(`sem overflow horizontal em ${path}`, async ({ page }) => {
+      await page.goto(path)
+      await page.getByRole('heading', { level: 1 }).first().waitFor()
+      await page.waitForLoadState('networkidle')
+      const { scrollWidth, clientWidth } = await page.evaluate(() => ({
+        scrollWidth: document.documentElement.scrollWidth,
+        clientWidth: document.documentElement.clientWidth,
+      }))
+      expect(scrollWidth).toBeLessThanOrEqual(clientWidth)
+    })
+  }
 })

@@ -1,12 +1,17 @@
 import { Link } from '@tanstack/react-router'
 
 import { Skeleton } from '@/components/ui/skeleton'
+import { FavoriteButton } from '@/features/favorites/favorite-button'
 import type { NftSummary } from '@/lib/api/contracts'
 import { formatEth } from '@/lib/money'
 
 export function NftCard({ nft, priority = false }: { nft: NftSummary; priority?: boolean }) {
   return (
-    <article className="group">
+    <article className="group relative">
+      <FavoriteButton
+        nft={nft}
+        className="bg-background/85 text-foreground absolute top-3 right-3 z-10 size-9 rounded-md"
+      />
       <Link
         to="/nfts/$nftId"
         params={{ nftId: nft.id }}
