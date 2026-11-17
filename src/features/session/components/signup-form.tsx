@@ -16,7 +16,9 @@ export function SignupForm({ submitLabel = 'Criar conta' }: { submitLabel?: stri
   const form = useForm<SignupValues>({
     resolver: zodResolver(signupSchema),
     defaultValues: { username: '', email: '', password: '', confirmPassword: '' },
-    mode: 'onTouched',
+    // Validate on submit, then live: blur validation shifts the layout under the pointer.
+    mode: 'onSubmit',
+    reValidateMode: 'onChange',
   })
   const { errors } = form.formState
 

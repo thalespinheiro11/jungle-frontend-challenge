@@ -37,7 +37,7 @@ export function SiteHeader() {
   const { user, isPending } = useSession()
   const pathname = useRouterState({ select: (s) => s.location.pathname })
   // Auth screens and the NFT detail (own sticky purchase bar) have no bottom nav on mobile.
-  const hideMobileNav = pathname === '/login' || pathname === '/signup' || pathname === '/cart' || pathname.startsWith('/nfts/')
+  const hideMobileNav = pathname === '/login' || pathname === '/signup' || pathname === '/cart' || pathname === '/checkout' || pathname.startsWith('/nfts/')
 
   return (
     <>

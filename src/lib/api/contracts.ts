@@ -23,6 +23,8 @@ export type ApiErrorCode =
   | 'IDEMPOTENCY_CONFLICT'
   | 'COUPON_INVALID'
   | 'COUPON_EXPIRED'
+  | 'QUOTE_EXPIRED'
+  | 'WALLET_REJECTED'
   | 'TRANSIENT'
 
 export interface ApiErrorBody {
@@ -256,3 +258,125 @@ export type NftUpdatedEvent = RealtimeEnvelope<
   'nft.updated',
   Pick<Nft, 'id' | 'price' | 'compareAtPrice' | 'editions' | 'version'>
 >
+
+export type OrderUpdatedEvent = RealtimeEnvelope<
+  'order.updated',
+  Pick<Order, 'id' | 'status' | 'version' | 'txHash' | 'failureReason'>
+>
+
+// ---------- Wallets ----------
+
+export const WALLET_PROVIDERS = ['metamask', 'walletconnect', 'coinbase'] as const
+export type WalletProvider = (typeof WALLET_PROVIDERS)[number]
+export type WalletSlot = 'primary' | 'secondary'
+
+/** A wallet registered in the collector's account (Figma: "Carteiras"). */
+export interface Wallet {
+  slot: WalletSlot
+  displayName: string
+  nickname: string
+  network: Network
+  profileName: string
+  /** 0x-prefixed, 40 hex chars. */
+  address: string
+  /** ENS or secondary address (optional). */
+  ensOrSecondary: string | null
+  provider: WalletProvider
+  referralCode: string
+  email: string
+  /** ENS name without the ".eth" suffix. */
+  ensName: string
+  updatedAt: IsoDate
+}
+
+export type WalletInput = Omit<Wallet, 'slot' | 'updatedAt'>
+
+/** GET /me/wallets */
+export interface WalletList {
+  primary: Wallet | null
+  secondary: Wallet | null
+}
+
+/** POST /wallet-connections — simulated wallet handshake (approve / reject). */
+export interface WalletConnectionRequest {
+  address: string
+  provider: WalletProvider
+  network: Network
+}
+export interface WalletConnection {
+  id: string
+  address: string
+  provider: WalletProvider
+  network: Network
+  connectedAt: IsoDate
+}
+
+// ---------- Checkout quote & orders ----------
+
+/** Snapshot of a purchased line, frozen in the quote and the order receipt. */
+export interface OrderLine {
+  nftId: string
+  editionId: EditionId
+  editionLabel: string
+  name: string
+  tokenId: string
+  image: string
+  quantity: number
+  unitPrice: EthAmount
+  lineTotal: EthAmount
+}
+
+/**
+ * POST /checkout/quote — server revalidation of the cart right before ordering.
+ * Orders must reference a quote; a stale quote (prices/availability changed or expired)
+ * is rejected, and the user must confirm the new one.
+ */
+export interface CheckoutQuote {
+  id: string
+  lines: OrderLine[]
+  coupon: CartCoupon | null
+  summary: CartSummary
+  /** Cart version the quote was computed from. */
+  cartVersion: number
+  expiresAt: IsoDate
+}
+
+export interface CheckoutBuyer {
+  displayName: string
+  username: string
+  email: string
+  referralCode: string | null
+  note: string | null
+}
+
+/** POST /orders (header Idempotency-Key). */
+export interface CreateOrderRequest {
+  quoteId: string
+  connectionId: string
+  buyer: CheckoutBuyer
+}
+
+export type OrderStatus = 'pending' | 'confirmed' | 'declined'
+
+export interface Order {
+  id: string
+  status: OrderStatus
+  /** Increments on each status change; realtime events carry it. */
+  version: number
+  createdAt: IsoDate
+  settledAt: IsoDate | null
+  /** Simulated transaction hash, set once confirmed. */
+  txHash: string | null
+  failureReason: string | null
+  wallet: { address: string; provider: WalletProvider; network: Network }
+  buyer: CheckoutBuyer
+  /** Receipt snapshot: never changes after creation, whatever happens to the catalog. */
+  lines: OrderLine[]
+  coupon: CartCoupon | null
+  summary: CartSummary
+}
+
+/** 409 PRICE_CHANGED / OUT_OF_STOCK on order creation carry the fresh quote. */
+export interface StaleQuoteErrorBody extends ApiErrorBody {
+  quote: CheckoutQuote
+}

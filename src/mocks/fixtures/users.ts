@@ -1,4 +1,41 @@
-import type { SessionUser } from '@/lib/api/contracts'
+import type { SessionUser, WalletList } from '@/lib/api/contracts'
+
+/** Ana has both wallets (as in the mobile payment frame); Bruno has none. */
+export function buildWalletFixtures(): Record<string, WalletList> {
+  const updatedAt = '2026-10-02T12:00:00.000Z'
+  return {
+    usr_ana: {
+      primary: {
+        slot: 'primary',
+        displayName: 'Ana Souza',
+        nickname: 'Principal',
+        network: 'ethereum',
+        profileName: 'ana.colecionadora',
+        address: '0xA91F3c5d7e2b4a8f9c0d1e2f3a4b5c6d7e8fE82C',
+        ensOrSecondary: null,
+        provider: 'metamask',
+        referralCode: 'KURIO2026',
+        email: 'ana@kurio.dev',
+        ensName: 'ana',
+        updatedAt,
+      },
+      secondary: {
+        slot: 'secondary',
+        displayName: 'Ana Souza',
+        nickname: 'Reserva',
+        network: 'polygon',
+        profileName: 'ana.colecionadora',
+        address: '0x5B7c0e1D2f3A4b5C6d7E8f9A0b1C2d3E4f5A6b7C',
+        ensOrSecondary: 'nova.kurio.eth',
+        provider: 'coinbase',
+        referralCode: 'KURIO2026',
+        email: 'ana@kurio.dev',
+        ensName: 'nova',
+        updatedAt,
+      },
+    },
+  }
+}
 
 /**
  * Seed collectors. Passwords are never stored in clear text: each user keeps a salt and

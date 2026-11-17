@@ -17,7 +17,9 @@ export function LoginForm() {
   const form = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: '', password: '' },
-    mode: 'onTouched',
+    // Validate on submit, then live: blur validation shifts the layout under the pointer.
+    mode: 'onSubmit',
+    reValidateMode: 'onChange',
   })
   const { errors } = form.formState
 

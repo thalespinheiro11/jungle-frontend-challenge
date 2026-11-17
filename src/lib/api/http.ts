@@ -9,18 +9,22 @@ export class ApiError extends Error {
   readonly status: number
   readonly code: ApiErrorCode | 'NETWORK_ERROR' | 'TIMEOUT' | 'CANCELED' | 'UNKNOWN'
   readonly fieldErrors: Record<string, string>
+  /** Raw error body, for endpoints that attach extra data (e.g. a fresh quote on 409). */
+  readonly details: unknown
 
   constructor(init: {
     status: number
     code: ApiError['code']
     message: string
     fieldErrors?: Record<string, string>
+    details?: unknown
   }) {
     super(init.message)
     this.name = 'ApiError'
     this.status = init.status
     this.code = init.code
     this.fieldErrors = init.fieldErrors ?? {}
+    this.details = init.details
   }
 
   /** Failures worth retrying automatically. */
@@ -49,7 +53,7 @@ export function toApiError(error: unknown): ApiError {
     }
     const body = error.response?.data as Partial<ApiErrorBody> | undefined
     if (error.response && body?.error) {
-      return new ApiError({ status: error.response.status, ...body.error })
+      return new ApiError({ status: error.response.status, ...body.error, details: body })
     }
     if (!error.response) {
       return new ApiError({

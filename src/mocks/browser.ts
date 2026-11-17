@@ -7,6 +7,7 @@ import { db } from './db'
 import { handlers } from './handlers'
 import { realtimeStats } from './handlers/realtime'
 import { resetNetworkState } from './http-utils'
+import { replayOrderEvent, settleDueOrders, settlementControl, startSettlementLoop } from './orders'
 
 export const worker = setupWorker(...handlers)
 
@@ -26,6 +27,7 @@ const controls = {
   },
   reset() {
     db.reset()
+    settlementControl.resume()
     mockConfig.setScenario('default')
     resetNetworkState()
   },
@@ -36,6 +38,33 @@ const controls = {
   /** Live Socket.IO connections (tests wait for > 0 before emitting events). */
   realtimeConnections() {
     return realtimeStats.connections
+  },
+  /** Live sockets authenticated as some user (private events need one). */
+  authenticatedRealtimeConnections() {
+    return realtimeStats.authenticated
+  },
+  /** Drops every socket; clients reconnect on their own (network interruption). */
+  disconnectRealtime() {
+    realtimeStats.disconnectAll()
+  },
+  /** Freezes / resumes the simulated chain, to keep orders pending deterministically. */
+  pauseSettlement() {
+    settlementControl.pause()
+  },
+  resumeSettlement() {
+    settlementControl.resume()
+    settleDueOrders()
+  },
+  /** Re-emits the last order.updated (duplicate), or a copy with an older version (stale). */
+  replayOrderEvent(orderId: string, version?: number) {
+    return replayOrderEvent(orderId, version)
+  },
+  /** All order ids (tests assert no duplicate purchase was created). */
+  orderIds() {
+    return db.orders.all().map((r) => r.order.id)
+  },
+  getOrder(id: string) {
+    return db.orders.find(id)?.order
   },
   getNft(id: string) {
     return db.nfts.find(id)
@@ -53,6 +82,7 @@ declare global {
 
 export async function startMocking() {
   window.__mocks = controls
+  startSettlementLoop()
   await worker.start({
     serviceWorker: { url: '/mockServiceWorker.js' },
     // Assets and other HTTP pass through silently; an unmatched WebSocket means the

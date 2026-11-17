@@ -23,6 +23,13 @@ interface Window {
     reset(): void
     expireSessions(): void
     realtimeConnections(): number
+    authenticatedRealtimeConnections(): number
+    disconnectRealtime(): void
+    pauseSettlement(): void
+    resumeSettlement(): void
+    replayOrderEvent(orderId: string, version?: number): boolean
+    orderIds(): string[]
+    getOrder(id: string): { id: string; status: string; version: number } | undefined
     getNft(id: string): MockNft | undefined
     updateNft(id: string, patch: { editions?: MockEdition[]; compareAtPrice?: string | null }): MockNft | undefined
   }

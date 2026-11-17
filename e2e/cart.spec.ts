@@ -117,7 +117,8 @@ test.describe('carrinho', () => {
     await buyFromDetail(page)
     const line = row(page, /Emerald Ape #042/)
     await line.getByRole('button', { name: 'Aumentar quantidade' }).click()
-    await expect(line.getByRole('spinbutton')).toHaveValue('2')
+    // Wait for the server-confirmed total, not just the optimistic stepper value.
+    await expect(visible(page, '2.396 ETH')).toBeVisible()
     await mocksReady(page)
     await realtimeReady(page)
 

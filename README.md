@@ -65,6 +65,21 @@ Selecione com `?scenario=<nome>` na URL (fica salvo) ou pelo console com `window
 `window.__mocks.reset()` restaura os dados iniciais e o cenário padrão.
 `window.__mocks.expireSessions()` expira todas as sessões ativas (simula expiração no meio do uso).
 
+Outros controles em `window.__mocks`: `pauseSettlement()` / `resumeSettlement()` (mantém pedidos pendentes),
+`disconnectRealtime()` (derruba os sockets; o cliente reconecta), `replayOrderEvent(id, versão?)` (evento
+duplicado ou antigo) e `updateNft(id, patch)` (altera preço/disponibilidade e emite `nft.updated`).
+
+## Fluxo de compra
+
+1. Carrinho → **Conectar e finalizar** (exige login; o carrinho de visitante é mesclado).
+2. Pagamento: dados do colecionador, carteira cadastrada (ou outra), tipo de carteira e rede.
+   **Conectar** simula a carteira (aprovação ou recusa).
+3. **Revisar pedido** pede uma cotação ao servidor (revalida preço, estoque, cupom e taxas).
+4. **Confirmar compra** envia o pedido com `Idempotency-Key`. Se os valores mudaram, o servidor
+   devolve a nova cotação e a confirmação precisa ser refeita.
+5. O pedido fica **pendente** até a liquidação simulada (~2,5 s), que emite `order.updated` só
+   para o dono do pedido. O recibo aparece apenas para pedidos **confirmados**.
+
 | Cenário | Comportamento |
 | --- | --- |
 | `default` | Respostas rápidas e bem-sucedidas |
@@ -73,6 +88,9 @@ Selecione com `?scenario=<nome>` na URL (fica salvo) ou pelo console com `window
 | `server-error` | Catálogo responde 503 duas vezes e depois se recupera |
 | `offline` | Todas as chamadas REST falham como erro de rede |
 | `favorites-error` | Favoritar/desfavoritar responde 503 (o coração volta ao estado anterior) |
+| `wallet-rejected` | A carteira recusa a conexão no pagamento |
+| `payment-declined` | O pedido é criado, mas o pagamento é recusado na liquidação (itens ficam no carrinho) |
+| `order-timeout` | O pedido é criado, mas a resposta chega depois do timeout do cliente (10 s); o reenvio automático com a mesma chave recupera o mesmo pedido |
 
 ## Estrutura
 

@@ -1,9 +1,10 @@
 import { useQueryClient, type QueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
 
-import { invalidateCartsWithNft } from '@/features/cart/api'
+import { cartKeys, invalidateCartsWithNft } from '@/features/cart/api'
 import { catalogKeys } from '@/features/catalog/api'
-import type { Nft, NftSummary, NftUpdatedEvent, Paginated } from '@/lib/api/contracts'
+import { applyOrderUpdated, orderKeys } from '@/features/orders/api'
+import type { Nft, NftSummary, NftUpdatedEvent, OrderUpdatedEvent, Paginated } from '@/lib/api/contracts'
 
 import { createSocket, disposeSocket } from './socket'
 
@@ -48,10 +49,11 @@ export function applyNftUpdated(queryClient: QueryClient, event: NftUpdatedEvent
 /**
  * Bridges Socket.IO events into the TanStack Query cache.
  * The socket lives as long as the session token: login, logout and user switch tear it
- * down (releasing listeners) and open a new one. On reconnect it refetches active catalog
+ * down (releasing listeners) and open a new one, so events of a previous session can never
+ * touch the next user's cache. On reconnect it refetches active catalog, cart and order
  * queries, reconciling anything missed while offline.
  */
-export function useRealtimeSync(token: string | null, enabled = true) {
+export function useRealtimeSync(token: string | null, userId: string | null, enabled = true) {
   const queryClient = useQueryClient()
 
   useEffect(() => {
@@ -66,17 +68,30 @@ export function useRealtimeSync(token: string | null, enabled = true) {
       // Carts carry server-computed quotes: refetch instead of patching money locally.
       void invalidateCartsWithNft(queryClient, event.payload.id)
     }
+    const onOrderUpdated = (event: OrderUpdatedEvent) => {
+      if (!userId || !seen.add(event.id)) return
+      const changed = applyOrderUpdated(queryClient, userId, event)
+      // A confirmed order removed the purchased items from the cart server-side.
+      if (changed && event.payload.status === 'confirmed') {
+        void queryClient.invalidateQueries({ queryKey: cartKeys.user(userId) })
+      }
+    }
     const onConnect = () => {
       if (hasConnected) {
         void queryClient.invalidateQueries({ queryKey: catalogKeys.all, refetchType: 'active' })
+        if (userId) {
+          void queryClient.invalidateQueries({ queryKey: orderKeys.all(userId), refetchType: 'active' })
+          void queryClient.invalidateQueries({ queryKey: cartKeys.user(userId), refetchType: 'active' })
+        }
       }
       hasConnected = true
     }
 
     socket.on('connect', onConnect)
     socket.on('nft.updated', onNftUpdated)
+    socket.on('order.updated', onOrderUpdated)
     socket.connect()
 
     return () => disposeSocket(socket)
-  }, [queryClient, token, enabled])
+  }, [queryClient, token, userId, enabled])
 }

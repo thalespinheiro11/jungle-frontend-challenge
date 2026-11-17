@@ -11,6 +11,10 @@ export const SCENARIOS = {
   'server-error': 'Catálogo responde 500 nas primeiras 2 tentativas e depois se recupera.',
   offline: 'Todas as chamadas REST falham como erro de rede.',
   'favorites-error': 'Favoritar/desfavoritar responde 503 (teste de rollback otimista).',
+  'wallet-rejected': 'A carteira recusa a conexão no pagamento.',
+  'payment-declined': 'Pedidos são criados, mas o pagamento é recusado na liquidação.',
+  'order-timeout':
+    'A criação do pedido responde só depois do timeout do cliente (o pedido existe; o reenvio recupera o mesmo).',
 } as const
 
 export type ScenarioName = keyof typeof SCENARIOS

@@ -1,7 +1,17 @@
-import type { EditionId, Nft, NftUpdatedEvent } from '@/lib/api/contracts'
+import type {
+  CheckoutQuote,
+  EditionId,
+  Nft,
+  NftUpdatedEvent,
+  Order,
+  OrderUpdatedEvent,
+  Wallet,
+  WalletConnection,
+  WalletList,
+} from '@/lib/api/contracts'
 
 import { buildNftFixtures, minAvailablePrice } from './fixtures/nfts'
-import { buildUserFixtures, type MockUser } from './fixtures/users'
+import { buildUserFixtures, buildWalletFixtures, type MockUser } from './fixtures/users'
 
 /**
  * In-memory mock database, persisted to localStorage so refreshes keep state.
@@ -10,7 +20,7 @@ import { buildUserFixtures, type MockUser } from './fixtures/users'
  */
 
 const STORAGE_KEY = 'kurio:mocks:db'
-const SCHEMA_VERSION = 4
+const SCHEMA_VERSION = 5
 
 export const SESSION_TTL_MS = 30 * 60_000
 
@@ -29,6 +39,20 @@ interface DbState {
   /** userId → NFT ids, most recent first. */
   favorites: Record<string, string[]>
   carts: Record<string, MockCart>
+  wallets: Record<string, WalletList>
+  connections: Record<string, WalletConnection & { userId: string }>
+  quotes: Record<string, { quote: CheckoutQuote; userId: string }>
+  orders: Record<string, MockOrder>
+  /** `${userId}:${idempotencyKey}` → order id + request fingerprint. */
+  idempotency: Record<string, { orderId: string; fingerprint: string }>
+}
+
+export interface MockOrder {
+  order: Order
+  userId: string
+  /** When the simulated chain settles the order, and with which outcome. */
+  settleAt: string
+  outcome: 'confirmed' | 'declined'
 }
 
 export interface MockCartLine {
@@ -50,8 +74,12 @@ export interface MockCart {
   updatedAt: string
 }
 
-type DbEvent = NftUpdatedEvent
-type Listener = (event: DbEvent) => void
+export type DbEvent = NftUpdatedEvent | OrderUpdatedEvent
+/** `userId` set → private event, delivered only to that user's sockets. */
+export interface EventAudience {
+  userId?: string
+}
+type Listener = (event: DbEvent, audience: EventAudience) => void
 
 function seed(): DbState {
   return {
@@ -61,6 +89,11 @@ function seed(): DbState {
     sessions: {},
     favorites: {},
     carts: {},
+    wallets: buildWalletFixtures(),
+    connections: {},
+    quotes: {},
+    orders: {},
+    idempotency: {},
   }
 }
 
@@ -88,8 +121,8 @@ function persist() {
   }
 }
 
-function publish(event: DbEvent) {
-  listeners.forEach((listener) => listener(event))
+export function publish(event: DbEvent, audience: EventAudience = {}) {
+  listeners.forEach((listener) => listener(event, audience))
 }
 
 export const db = {
@@ -207,6 +240,60 @@ export const db = {
       delete state.carts[id]
       persist()
     },
+  },
+
+  wallets: {
+    list: (userId: string): WalletList => state.wallets[userId] ?? { primary: null, secondary: null },
+    save(userId: string, wallet: Wallet) {
+      const current = state.wallets[userId] ?? { primary: null, secondary: null }
+      state.wallets[userId] = { ...current, [wallet.slot]: wallet }
+      persist()
+      return wallet
+    },
+  },
+
+  connections: {
+    find: (id: string) => state.connections[id],
+    create(userId: string, connection: WalletConnection) {
+      state.connections[connection.id] = { ...connection, userId }
+      persist()
+      return connection
+    },
+    remove(id: string) {
+      delete state.connections[id]
+      persist()
+    },
+  },
+
+  quotes: {
+    find: (id: string) => state.quotes[id],
+    save(userId: string, quote: CheckoutQuote) {
+      state.quotes[quote.id] = { quote, userId }
+      persist()
+      return quote
+    },
+  },
+
+  orders: {
+    find: (id: string): MockOrder | undefined => state.orders[id],
+    all: (): MockOrder[] => Object.values(state.orders),
+    save(record: MockOrder) {
+      state.orders[record.order.id] = record
+      persist()
+      return record
+    },
+    idempotency: {
+      find: (userId: string, key: string) => state.idempotency[`${userId}:${key}`],
+      save(userId: string, key: string, value: { orderId: string; fingerprint: string }) {
+        state.idempotency[`${userId}:${key}`] = value
+        persist()
+      },
+    },
+  },
+
+  /** Persists in-place changes made to records returned by the accessors. */
+  commit() {
+    persist()
   },
 
   subscribe(listener: Listener) {
