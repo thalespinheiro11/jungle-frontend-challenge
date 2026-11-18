@@ -44,6 +44,9 @@ export function buildWalletFixtures(): Record<string, WalletList> {
  *   bruno@kurio.dev / Kurio@123
  */
 export interface MockUser extends SessionUser {
+  ensName: string
+  walletNickname: string
+  updatedAt: string
   salt: string
   passwordHash: string
   createdAt: string
@@ -54,6 +57,9 @@ export function buildUserFixtures(): MockUser[] {
     {
       id: 'usr_ana',
       name: 'Ana Souza',
+      ensName: 'ana',
+      walletNickname: 'Principal',
+      updatedAt: '2026-10-01T12:00:00.000Z',
       username: 'ana.colecionadora',
       email: 'ana@kurio.dev',
       avatarUrl: null,
@@ -64,6 +70,9 @@ export function buildUserFixtures(): MockUser[] {
     {
       id: 'usr_bruno',
       name: 'Bruno Lima',
+      ensName: 'bruno',
+      walletNickname: 'Principal',
+      updatedAt: '2026-10-05T12:00:00.000Z',
       username: 'bruno.nft',
       email: 'bruno@kurio.dev',
       avatarUrl: null,

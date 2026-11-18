@@ -227,6 +227,32 @@ export interface Session {
   expiresAt: IsoDate
 }
 
+/** GET/PATCH /me/profile — collector profile (Figma: "Perfil do colecionador"). */
+export interface Profile {
+  id: string
+  displayName: string
+  username: string
+  email: string
+  /** ENS name without the ".eth" suffix. */
+  ensName: string
+  walletNickname: string
+  avatarUrl: string | null
+  updatedAt: IsoDate
+}
+
+export type UpdateProfileRequest = Pick<Profile, 'displayName' | 'username' | 'email' | 'ensName' | 'walletNickname'>
+
+/** PUT /me/avatar — image as a data URL (png, jpeg or webp; max 1 MB). */
+export interface UpdateAvatarRequest {
+  dataUrl: string
+}
+
+/** POST /me/password */
+export interface ChangePasswordRequest {
+  currentPassword: string
+  newPassword: string
+}
+
 /** POST /auth/login */
 export interface LoginRequest {
   email: string

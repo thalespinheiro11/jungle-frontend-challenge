@@ -20,7 +20,7 @@ import { buildUserFixtures, buildWalletFixtures, type MockUser } from './fixture
  */
 
 const STORAGE_KEY = 'kurio:mocks:db'
-const SCHEMA_VERSION = 5
+const SCHEMA_VERSION = 6
 
 export const SESSION_TTL_MS = 30 * 60_000
 
@@ -167,6 +167,15 @@ export const db = {
       Object.values(state.users).find((u) => u.email.toLowerCase() === email.toLowerCase()),
     findByUsername: (username: string) =>
       Object.values(state.users).find((u) => u.username.toLowerCase() === username.toLowerCase()),
+    /** Applies changes to a user (persisted). */
+    update(id: string, change: (user: MockUser) => void): MockUser | undefined {
+      const user = state.users[id]
+      if (!user) return undefined
+      change(user)
+      user.updatedAt = new Date().toISOString()
+      persist()
+      return user
+    },
     insert(user: MockUser) {
       state.users[user.id] = user
       persist()

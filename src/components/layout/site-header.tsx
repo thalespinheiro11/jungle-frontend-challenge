@@ -108,7 +108,7 @@ export function SiteHeader() {
         <Link to="/" aria-label="Início" className="text-foreground data-[status=active]:text-primary p-3" activeOptions={{ exact: true }}>
           <Home className="size-5" aria-hidden />
         </Link>
-        <Link to="/account/profile" hash="favoritos" aria-label="Favoritos" className="p-3">
+        <Link to="/account/favorites" aria-label="Favoritos" className="data-[status=active]:text-primary p-3">
           <Heart className="size-5" aria-hidden />
         </Link>
         <CartLink className="data-[status=active]:text-primary" />

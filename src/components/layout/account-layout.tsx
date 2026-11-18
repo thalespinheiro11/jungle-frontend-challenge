@@ -16,7 +16,6 @@ import { cn } from '@/lib/utils'
 
 const UNAVAILABLE = [
   { label: 'Atividade', icon: ShoppingCart },
-  { label: 'Lista de interesse', icon: Heart },
   { label: 'Ofertas', icon: TrendingUp },
   { label: 'Arquivos baixados', icon: Download },
   { label: 'Suporte', icon: LifeBuoy },
@@ -42,6 +41,11 @@ export function AccountLayout({ title, children }: { title: string; children: Re
             <li>
               <Link to="/account/wallets" className={item}>
                 <MapPin className="size-4" aria-hidden /> Carteiras
+              </Link>
+            </li>
+            <li>
+              <Link to="/account/favorites" className={item}>
+                <Heart className="size-4" aria-hidden /> Lista de interesse
               </Link>
             </li>
             {UNAVAILABLE.map(({ label, icon: Icon }) => (
