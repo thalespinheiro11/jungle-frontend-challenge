@@ -5,6 +5,14 @@ import { FavoriteButton } from '@/features/favorites/favorite-button'
 import type { NftSummary } from '@/lib/api/contracts'
 import { formatEth } from '@/lib/money'
 
+/** Badge for the scarcer tiers ("RARO" in the layout); common tiers show none. */
+const RARITY_BADGE: Record<NftSummary['rarity'], string | null> = {
+  common: null,
+  uncommon: null,
+  rare: 'RARO',
+  epic: 'ÉPICO',
+}
+
 export function NftCard({ nft, priority = false }: { nft: NftSummary; priority?: boolean }) {
   return (
     <article className="group relative">
@@ -17,7 +25,13 @@ export function NftCard({ nft, priority = false }: { nft: NftSummary; priority?:
         params={{ nftId: nft.id }}
         className="block rounded-md focus-visible:outline-offset-4"
       >
-        <div className="bg-card p-1 md:p-1">
+        <div className="bg-card relative p-1 md:p-1">
+          {RARITY_BADGE[nft.rarity] && (
+            <span className="bg-primary text-primary-foreground absolute top-4 left-1 z-[1] px-2 py-0.5 text-xs font-bold md:text-sm">
+              <span className="sr-only">Raridade: </span>
+              {RARITY_BADGE[nft.rarity]}
+            </span>
+          )}
           <img
             src={nft.image}
             alt={nft.imageAlt}

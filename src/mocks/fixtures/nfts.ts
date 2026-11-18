@@ -82,6 +82,13 @@ const SEED: Array<{ name: string; art: ArtKey; price: string; compareAt?: string
 
 const COLLECTIONS = ['Kurio Apes', 'Kurio Editions', 'Nomad Club', 'Golden Sound', 'Baron Society']
 const CREATORS = ['Nova Sato', 'Iara Mendes', 'Leo Vasconcelos', 'Kai Moreau', 'Ana Ribeiro']
+const RARITY: Record<ArtKey, Nft['rarity']> = {
+  emerald: 'rare',
+  sage: 'uncommon',
+  ivory: 'epic',
+  golden: 'common',
+}
+
 const ATTRIBUTES: Record<ArtKey, string[]> = {
   emerald: ['Óculos', 'Esmeralda', 'Raro'],
   sage: ['Chapéu bucket', 'Moletom', 'Incomum'],
@@ -201,6 +208,7 @@ export function buildNftFixtures(): Nft[] {
       reviews: buildReviews(detailRand, index),
       contractAddress: index === 0 ? '0x7A42...19E8' : contractAddress(detailRand),
       attributes: ATTRIBUTES[entry.art],
+      rarity: RARITY[entry.art],
       description: `Um colecionável digital finalizado à mão da coleção ${collection}, verificado na ${
         network === 'ethereum' ? 'Ethereum' : network === 'polygon' ? 'Polygon' : 'Solana'
       }, com arte desbloqueável e acesso para colecionadores.`,

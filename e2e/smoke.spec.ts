@@ -5,7 +5,8 @@ import { realtimeReady } from './support'
 test.describe('base da aplicação', () => {
   test('lista o catálogo vindo do MSW', async ({ page }) => {
     await page.goto('/')
-    await expect(page.getByRole('heading', { level: 1 })).toContainText(/seja dono do futuro/i)
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Kurio — marketplace de NFTs')
+    await expect(page.getByRole('heading', { level: 2, name: /seja dono do futuro/i })).toBeVisible()
     await expect(page.getByRole('link', { name: /Emerald Ape #042/ })).toBeVisible()
   })
 

@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 
 import { facetsQuery, nftListQuery } from '@/features/catalog/api'
 import { CatalogSection } from '@/features/catalog/components/catalog-section'
+import { LaunchBanners, MintJournal } from '@/features/catalog/components/home-editorial'
 import { HomeHero } from '@/features/catalog/components/home-hero'
 import { catalogSearchSchema, toListParams } from '@/features/catalog/search'
 
@@ -21,6 +22,8 @@ function HomePage() {
     <>
       <HomeHero />
       <CatalogSection />
+      <LaunchBanners />
+      <MintJournal />
     </>
   )
 }

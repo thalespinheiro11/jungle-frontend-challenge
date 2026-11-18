@@ -65,6 +65,8 @@ export interface NftEdition {
   available: number
 }
 
+export type NftRarity = 'common' | 'uncommon' | 'rare' | 'epic'
+
 export interface NftSummary {
   id: string
   name: string
@@ -77,6 +79,7 @@ export interface NftSummary {
   /** Previous price when the NFT is discounted (rendered struck-through). */
   compareAtPrice: EthAmount | null
   tags: Array<'new' | 'trending' | 'featured'>
+  rarity: NftRarity
   listedAt: IsoDate
   /** Monotonic version; realtime events carry it so stale updates can be dropped. */
   version: number
@@ -149,6 +152,8 @@ export interface CatalogFacets {
   categories: FacetCount<NftCategory>[]
   networks: FacetCount<Network>[]
   priceRange: { min: EthAmount; max: EthAmount }
+  /** "NFT em destaque · Oferta limitada" card of the home sidebar. */
+  featured: NftSummary | null
 }
 
 // ---------- Cart & quote ----------
@@ -209,6 +214,13 @@ export interface AddCartItemRequest {
   nftId: string
   editionId: EditionId
   quantity: number
+}
+
+// ---------- Newsletter ----------
+
+/** POST /newsletter — "Antecipe-se ao próximo lançamento". */
+export interface NewsletterRequest {
+  email: string
 }
 
 // ---------- Session ----------

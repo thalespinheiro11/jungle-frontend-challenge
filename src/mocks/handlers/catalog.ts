@@ -22,8 +22,8 @@ const API = '*/api'
 const DEFAULT_PAGE_SIZE = 9
 
 export function toSummary(nft: Nft): NftSummary {
-  const { id, name, image, imageAlt, category, network, price, compareAtPrice, tags, listedAt, version } = nft
-  return { id, name, image, imageAlt, category, network, price, compareAtPrice, tags, listedAt, version }
+  const { id, name, image, imageAlt, category, network, price, compareAtPrice, tags, rarity, listedAt, version } = nft
+  return { id, name, image, imageAlt, category, network, price, compareAtPrice, tags, rarity, listedAt, version }
 }
 
 function parseList<T extends string>(values: string[], allowed: readonly T[]): T[] {
@@ -105,6 +105,10 @@ export const catalogHandlers = [
         min: prices.length ? Decimal.min(...prices).toString() : '0',
         max: prices.length ? Decimal.max(...prices).toString() : '0',
       },
+      featured: (() => {
+        const nft = items.find((n) => n.tags.includes('featured'))
+        return nft ? toSummary(nft) : null
+      })(),
     }
     return HttpResponse.json(body)
   }),

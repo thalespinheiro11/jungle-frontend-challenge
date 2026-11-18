@@ -4,6 +4,7 @@ import { createRouter, RouterProvider } from '@tanstack/react-router'
 import { RouteError } from '@/components/layout/route-states'
 import { installSessionHandling } from '@/features/session/session-handling'
 import { createQueryClient } from '@/lib/query-client'
+import { parseSearch, stringifySearch } from '@/lib/search-params'
 
 import { routeTree } from './routeTree.gen'
 
@@ -16,6 +17,9 @@ function createAppRouter(queryClient: ReturnType<typeof createQueryClient>) {
     defaultPreloadStaleTime: 0,
     defaultErrorComponent: RouteError,
     scrollRestoration: true,
+    // Repeated keys for arrays (?network=ethereum&network=polygon) instead of JSON.
+    parseSearch,
+    stringifySearch,
   })
 }
 

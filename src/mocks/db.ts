@@ -20,7 +20,7 @@ import { buildUserFixtures, buildWalletFixtures, type MockUser } from './fixture
  */
 
 const STORAGE_KEY = 'kurio:mocks:db'
-const SCHEMA_VERSION = 6
+const SCHEMA_VERSION = 8
 
 export const SESSION_TTL_MS = 30 * 60_000
 
@@ -45,6 +45,7 @@ interface DbState {
   orders: Record<string, MockOrder>
   /** `${userId}:${idempotencyKey}` → order id + request fingerprint. */
   idempotency: Record<string, { orderId: string; fingerprint: string }>
+  newsletter: string[]
 }
 
 export interface MockOrder {
@@ -94,6 +95,7 @@ function seed(): DbState {
     quotes: {},
     orders: {},
     idempotency: {},
+    newsletter: [],
   }
 }
 
@@ -297,6 +299,14 @@ export const db = {
         state.idempotency[`${userId}:${key}`] = value
         persist()
       },
+    },
+  },
+
+  newsletter: {
+    has: (email: string) => state.newsletter.includes(email.toLowerCase()),
+    add(email: string) {
+      state.newsletter.push(email.toLowerCase())
+      persist()
     },
   },
 

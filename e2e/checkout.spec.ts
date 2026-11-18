@@ -73,7 +73,7 @@ test.describe('pagamento e pedido', () => {
     await readyToPay(page)
     const name = page.getByRole('textbox', { name: 'Nome de exibição' })
     await name.fill('')
-    await page.getByRole('textbox', { name: 'E-mail' }).fill('invalido')
+    await page.getByRole('textbox', { name: 'E-mail', exact: true }).fill('invalido')
     await page.getByRole('button', { name: 'Revisar pedido' }).click()
 
     await expect(name).toBeFocused()
@@ -82,7 +82,7 @@ test.describe('pagamento e pedido', () => {
     await expect(page.getByText('Informe um e-mail válido.')).toBeVisible()
 
     await name.fill('Ana Souza')
-    await page.getByRole('textbox', { name: 'E-mail' }).fill('ana@kurio.dev')
+    await page.getByRole('textbox', { name: 'E-mail', exact: true }).fill('ana@kurio.dev')
     await page.getByRole('button', { name: 'Revisar pedido' }).click()
     await expect(page.getByText('Conecte sua carteira para revisar o pedido.')).toBeVisible()
   })
@@ -236,7 +236,7 @@ test.describe('carteiras', () => {
     await form.getByRole('textbox', { name: 'Endereço da carteira' }).fill('0x' + 'b'.repeat(40))
     await form.getByRole('combobox', { name: 'Tipo de carteira' }).selectOption('walletconnect')
     await form.getByRole('textbox', { name: 'Código de indicação' }).fill('BRUNO26')
-    await form.getByRole('textbox', { name: 'E-mail' }).fill('bruno@kurio.dev')
+    await form.getByRole('textbox', { name: 'E-mail', exact: true }).fill('bruno@kurio.dev')
     await form.getByRole('textbox', { name: 'Nome ENS' }).fill('bruno')
     await form.getByRole('button', { name: 'Salvar carteira' }).click()
     await expect(page.getByText('Carteira principal salva.')).toBeVisible()

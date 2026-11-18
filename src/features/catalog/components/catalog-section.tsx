@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link, useNavigate, useSearch } from '@tanstack/react-router'
-import { ChevronLeft, ChevronRight, Search } from 'lucide-react'
-import { useId, type FormEvent } from 'react'
+import { ChevronLeft, ChevronRight, Search, SlidersHorizontal } from 'lucide-react'
+import { useId, useState, type FormEvent } from 'react'
 
 import { QueryError } from '@/components/layout/route-states'
 import { Button } from '@/components/ui/button'
@@ -13,18 +13,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet'
 import { NFT_SORTS, NFT_TABS, type NftSort } from '@/lib/api/contracts'
 import { cn } from '@/lib/utils'
 
 import { facetsQuery, nftListQuery } from '../api'
-import { CATEGORY_LABEL, NETWORK_LABEL, SORT_LABEL, TAB_LABEL } from '../labels'
+import { SORT_LABEL, TAB_LABEL } from '../labels'
 import { toListParams, type CatalogSearch } from '../search'
+import { CatalogFilters, FeaturedNft } from './catalog-filters'
 import { NftCard, NftCardSkeleton } from './nft-card'
-
-function toggle<T>(list: T[] | undefined, value: T): T[] | undefined {
-  const next = list?.includes(value) ? list.filter((v) => v !== value) : [...(list ?? []), value]
-  return next.length ? next : undefined
-}
 
 export function CatalogSection() {
   const search = useSearch({ from: '/' })
@@ -33,6 +37,7 @@ export function CatalogSection() {
   const list = useQuery(nftListQuery(params))
   const facets = useQuery(facetsQuery())
   const sortLabelId = useId()
+  const [filtersOpen, setFiltersOpen] = useState(false)
 
   /** Any filter change resets pagination (page is dropped from the URL). */
   const setFilters = (patch: Partial<CatalogSearch>) =>
@@ -44,87 +49,76 @@ export function CatalogSection() {
     setFilters({ q: q || undefined })
   }
 
+  const activeFilters =
+    (search.category?.length ?? 0) + (search.network?.length ?? 0) + (search.minPrice || search.maxPrice ? 1 : 0)
+
   return (
-    <section id="catalogo" aria-labelledby="catalogo-titulo" className="container-page scroll-mt-4 py-8">
+    <section id="catalogo" aria-labelledby="catalogo-titulo" className="container-page scroll-mt-4 py-6 md:py-8">
       <h2 id="catalogo-titulo" className="sr-only">
         Catálogo de NFTs
       </h2>
 
-      <form role="search" onSubmit={onSearch} className="mb-6 flex gap-2">
-        <label htmlFor="catalog-q" className="sr-only">
-          Buscar NFTs
-        </label>
-        <div className="relative flex-1">
-          <Search className="text-subtle-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" aria-hidden />
-          <Input
-            key={search.q ?? ''}
-            id="catalog-q"
-            name="q"
-            defaultValue={search.q}
-            placeholder="Explorar coleções"
-            className="bg-card h-11 pl-9"
-          />
-        </div>
-        <Button type="submit" className="h-11">
-          Buscar
+      <div className="mb-6 flex gap-2">
+        <form role="search" onSubmit={onSearch} className="flex flex-1 gap-2">
+          <label htmlFor="catalog-q" className="sr-only">
+            Buscar NFTs
+          </label>
+          <div className="relative flex-1">
+            <Search className="text-primary absolute top-1/2 left-3 size-5 -translate-y-1/2" aria-hidden />
+            <Input
+              key={search.q ?? ''}
+              id="catalog-q"
+              name="q"
+              type="search"
+              defaultValue={search.q}
+              placeholder="Explorar coleções"
+              className="bg-card h-12 rounded-xl border-none pl-11 md:h-11 md:rounded-md md:border-solid"
+            />
+          </div>
+          <Button type="submit" className="hidden h-11 md:inline-flex">
+            Buscar
+          </Button>
+        </form>
+        {/* Mobile: filters live in a drawer (focus trapped, Esc closes). */}
+        <Button
+          type="button"
+          onClick={() => setFiltersOpen(true)}
+          className="relative size-12 rounded-xl md:hidden"
+          aria-label={activeFilters ? `Filtros (${activeFilters} ativos)` : 'Filtros'}
+        >
+          <SlidersHorizontal className="size-5" aria-hidden />
+          {activeFilters > 0 && (
+            <span aria-hidden className="bg-foreground text-background absolute -top-1 -right-1 grid size-5 place-items-center rounded-full text-[10px] font-bold">
+              {activeFilters}
+            </span>
+          )}
         </Button>
-      </form>
+      </div>
+
+      <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
+        <SheetContent side="bottom" className="bg-card max-h-[85dvh] overflow-y-auto rounded-t-3xl">
+          <SheetHeader>
+            <SheetTitle>Filtros</SheetTitle>
+            <SheetDescription>Combine coleções, faixa de preço e rede.</SheetDescription>
+          </SheetHeader>
+          <CatalogFilters search={search} facets={facets.data} onChange={setFilters} className="px-4" />
+          <SheetFooter>
+            <Button onClick={() => setFiltersOpen(false)} className="h-12 font-bold">
+              {list.isSuccess ? `Ver ${list.data.total} resultados` : 'Ver resultados'}
+            </Button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
 
       <div className="grid gap-8 lg:grid-cols-[310px_1fr] lg:gap-12">
-        <aside aria-label="Filtros" className="bg-card h-fit space-y-6 p-5">
-          <fieldset>
-            <legend className="mb-3 text-lg font-medium">Coleções</legend>
-            <ul className="space-y-1">
-              {(facets.data?.categories ?? []).map(({ value, count }) => {
-                const active = search.category?.includes(value) ?? false
-                return (
-                  <li key={value}>
-                    <button
-                      type="button"
-                      aria-pressed={active}
-                      onClick={() => setFilters({ category: toggle(search.category, value) })}
-                      className={cn(
-                        'flex w-full justify-between rounded px-3 py-2 text-left',
-                        active ? 'text-primary font-medium' : 'text-muted-foreground',
-                      )}
-                    >
-                      <span>{CATEGORY_LABEL[value]}</span>
-                      <span>({count})</span>
-                    </button>
-                  </li>
-                )
-              })}
-            </ul>
-          </fieldset>
-          <fieldset>
-            <legend className="mb-3 text-lg font-medium">Rede</legend>
-            <ul className="space-y-1">
-              {(facets.data?.networks ?? []).map(({ value, count }) => {
-                const active = search.network?.includes(value) ?? false
-                return (
-                  <li key={value}>
-                    <button
-                      type="button"
-                      aria-pressed={active}
-                      onClick={() => setFilters({ network: toggle(search.network, value) })}
-                      className={cn(
-                        'flex w-full justify-between rounded px-3 py-2 text-left text-sm',
-                        active ? 'text-primary font-medium' : 'text-muted-foreground',
-                      )}
-                    >
-                      <span>{NETWORK_LABEL[value]}</span>
-                      <span>({count})</span>
-                    </button>
-                  </li>
-                )
-              })}
-            </ul>
-          </fieldset>
+        <aside aria-label="Filtros" className="hidden space-y-6 lg:block">
+          <CatalogFilters search={search} facets={facets.data} onChange={setFilters} className="bg-card p-5" />
+          <FeaturedNft nft={facets.data?.featured} />
         </aside>
 
         <div>
           <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-            <nav aria-label="Seções do catálogo" className="flex flex-wrap gap-5">
+            <nav aria-label="Seções do catálogo" className="flex flex-nowrap gap-4 overflow-x-auto md:flex-wrap md:gap-5">
               {NFT_TABS.map((tab) => (
                 <Link
                   key={tab}
@@ -133,7 +127,7 @@ export function CatalogSection() {
                   hash="catalogo"
                   aria-current={params.tab === tab ? 'page' : undefined}
                   className={cn(
-                    'border-b-2 pb-0.5 text-sm font-medium',
+                    'shrink-0 border-b-2 pb-0.5 text-sm font-medium',
                     params.tab === tab ? 'text-primary border-primary' : 'border-transparent',
                   )}
                 >

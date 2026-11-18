@@ -24,7 +24,7 @@ test.describe('conta e sessão', () => {
     await page.goto('/login')
     await page.getByRole('button', { name: 'Entrar', exact: true }).click()
 
-    const email = page.getByRole('textbox', { name: 'E-mail' })
+    const email = page.getByRole('textbox', { name: 'E-mail', exact: true })
     await expect(email).toHaveAttribute('aria-invalid', 'true')
     await expect(email).toHaveAccessibleDescription(/Informe seu e-mail/)
     await expect(email).toBeFocused()
@@ -33,7 +33,7 @@ test.describe('conta e sessão', () => {
   test('cadastro valida campos e trata conflito de e-mail e usuário', async ({ page }) => {
     await page.goto('/signup')
     await page.getByPlaceholder('Nome de usuário').fill('ab')
-    await page.getByPlaceholder('Digite seu e-mail').fill('invalido')
+    await page.getByPlaceholder('Digite seu e-mail', { exact: true }).fill('invalido')
     await page.getByPlaceholder('Senha', { exact: true }).fill('curta')
     await page.getByPlaceholder('Confirmar senha').fill('diferente')
     await page.getByRole('button', { name: /Criar (conta|perfil)/ }).click()
@@ -45,7 +45,7 @@ test.describe('conta e sessão', () => {
 
     // Conflict comes from the API (409) and is mapped onto the fields.
     await page.getByPlaceholder('Nome de usuário').fill(USERS.bruno.username)
-    await page.getByPlaceholder('Digite seu e-mail').fill(USERS.ana.email)
+    await page.getByPlaceholder('Digite seu e-mail', { exact: true }).fill(USERS.ana.email)
     await page.getByPlaceholder('Senha', { exact: true }).fill('NovaSenha123')
     await page.getByPlaceholder('Confirmar senha').fill('NovaSenha123')
     await page.getByRole('button', { name: /Criar (conta|perfil)/ }).click()
@@ -57,7 +57,7 @@ test.describe('conta e sessão', () => {
   test('cadastro cria a conta, autentica e sobrevive ao refresh', async ({ page }) => {
     await page.goto('/signup')
     await page.getByPlaceholder('Nome de usuário').fill('carla.art')
-    await page.getByPlaceholder('Digite seu e-mail').fill('carla@kurio.dev')
+    await page.getByPlaceholder('Digite seu e-mail', { exact: true }).fill('carla@kurio.dev')
     await page.getByPlaceholder('Senha', { exact: true }).fill('Colecao2026')
     await page.getByPlaceholder('Confirmar senha').fill('Colecao2026')
     await page.getByRole('button', { name: /Criar (conta|perfil)/ }).click()

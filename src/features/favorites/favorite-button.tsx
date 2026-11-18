@@ -23,13 +23,18 @@ export function FavoriteButton({
   /** Optional visible label renderer; icon-only when omitted. */
   children?: (favorite: boolean) => ReactNode
 }) {
-  const { user } = useSession()
+  const { user, isPending: sessionPending } = useSession()
   const router = useRouter()
-  const { isFavorite } = useFavorites()
+  const { isFavorite, query } = useFavorites()
   const toggle = useToggleFavorite()
   const favorite = isFavorite(nft.id)
+  // Until we know who the user is (session) and what they favorited, a click could be
+  // misread: a signed-in user treated as a visitor (bounced to login), or a favorite
+  // "added" again instead of removed. The button waits for both.
+  const unresolved = sessionPending || (Boolean(user) && query.isPending)
 
   const onClick = () => {
+    if (unresolved) return
     if (!user) {
       toast.info('Entre na sua conta para salvar favoritos.')
       void router.navigate({ to: '/login', search: { redirect: router.state.location.href } })
@@ -46,7 +51,8 @@ export function FavoriteButton({
       // state in aria-pressed, so the name doesn't change under the user's focus.
       aria-pressed={favorite}
       aria-label={`Favoritar ${nft.name}`}
-      className={cn('inline-flex items-center justify-center gap-2', className)}
+      disabled={unresolved}
+      className={cn('inline-flex items-center justify-center gap-2 disabled:cursor-wait', className)}
     >
       <Heart className={cn('size-5', favorite && 'fill-primary text-primary')} aria-hidden />
       {children?.(favorite)}
