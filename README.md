@@ -40,9 +40,10 @@ Abra http://localhost:5173 em um navegador comum (os mocks dependem de Service W
 | `npm run assets`          | Converte as ilustrações de `design/assets` em WebP para `public/nfts`                          |
 
 A suíte inclui **regressão visual** (Início, detalhe, carrinho e pagamento, desktop e mobile)
-com imagens de referência em `e2e/visual.spec.ts-snapshots/`, geradas no Windows. Em outro
-sistema operacional, gere as referências locais com `npm run test:e2e:update -- e2e/visual.spec.ts`
-(detalhes no [ARCHITECTURE.md](ARCHITECTURE.md#regressão-visual)).
+com imagens de referência em `e2e/visual.spec.ts-snapshots/`, geradas no Windows. Em macOS ou
+Linux, esses 8 testes são **pulados** (a renderização de fontes muda entre sistemas) até que as
+referências locais sejam geradas com `npm run test:e2e:update -- e2e/visual.spec.ts` (detalhes no
+[ARCHITECTURE.md](ARCHITECTURE.md#regressão-visual)).
 
 Rodar a suíte E2E contra o site publicado:
 

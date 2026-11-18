@@ -22,3 +22,6 @@ playwright/.cache
 .DS_Store
 *.log
 .tanstack
+
+# local tooling (editor/agent configs)
+.claude/

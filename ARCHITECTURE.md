@@ -389,8 +389,10 @@ desktop e mobile e compara com as imagens versionadas em `e2e/visual.spec.ts-sna
   Com 0,1% e tolerância 0,05, as duas falham, assim como uma mudança de espaçamento no catálogo,
   e execuções repetidas continuam com 0 px de diferença.
 - **Por sistema operacional:** a suavização de fontes muda entre Windows, macOS e Linux, então as
-  imagens levam o sufixo do SO (`-win32`). Em outro sistema, gere as referências com
-  `npm run test:e2e:update -- e2e/visual.spec.ts` e revise as imagens antes de versionar.
+  imagens levam o sufixo do SO (`-win32`). Em um sistema sem referências, os testes visuais são
+  **pulados** com a instrução de gerá-las (comparar fontes do Windows com as do macOS/Linux
+  falharia por motivo alheio à interface). Gere com `npm run test:e2e:update -- e2e/visual.spec.ts`
+  e revise as imagens antes de versionar.
 
 ## 14. Performance e Lighthouse
 

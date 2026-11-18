@@ -1,3 +1,5 @@
+import { existsSync } from 'node:fs'
+
 import { expect, test, type Page } from '@playwright/test'
 
 import { loginAs, USERS } from './support'
@@ -14,7 +16,23 @@ import { loginAs, USERS } from './support'
  * Baselines live in e2e/visual.spec.ts-snapshots and are per OS (font antialiasing differs between
  * Windows, macOS and Linux). On a platform without baselines, generate them with
  * `npm run test:e2e:update -- e2e/visual.spec.ts` and review the images before committing.
+ * Until then, those tests are skipped (with that instruction) instead of failing.
  */
+
+/**
+ * Skips a visual test when this OS has no baseline and snapshots aren't being updated —
+ * comparing Windows-rendered fonts against macOS/Linux would fail for reasons unrelated to UI.
+ */
+function requireBaseline(name: string) {
+  const info = test.info()
+  const updating =
+    info.config.updateSnapshots === 'all' || info.config.updateSnapshots === 'changed'
+  const baseline = info.snapshotPath(`${name}.png`, { kind: 'screenshot' })
+  test.skip(
+    !updating && !existsSync(baseline),
+    `Sem imagem de referência para ${process.platform}. Gere com: npm run test:e2e:update -- e2e/visual.spec.ts`,
+  )
+}
 
 async function settle(page: Page) {
   await page.waitForLoadState('networkidle')
@@ -42,12 +60,14 @@ async function capture(page: Page, name: string) {
 
 test.describe('regressão visual', () => {
   test('início', async ({ page }) => {
+    requireBaseline('inicio')
     await page.goto('/')
     await expect(page.getByRole('link', { name: /Emerald Ape #042/ })).toBeVisible()
     await capture(page, 'inicio')
   })
 
   test('detalhe do NFT', async ({ page }) => {
+    requireBaseline('detalhe')
     await page.goto('/nfts/emerald-ape-042')
     await expect(page.getByRole('heading', { name: 'Mais desta coleção' })).toBeVisible()
     await expect(page.getByRole('link', { name: /Ivory Baron #088/ })).toBeVisible()
@@ -55,6 +75,7 @@ test.describe('regressão visual', () => {
   })
 
   test('carrinho', async ({ page }) => {
+    requireBaseline('carrinho')
     await page.goto('/nfts/emerald-ape-042')
     await page
       .getByRole('button', { name: /^(COMPRAR|Comprar NFT)$/ })
@@ -67,6 +88,7 @@ test.describe('regressão visual', () => {
   })
 
   test('pagamento', async ({ page }) => {
+    requireBaseline('pagamento')
     await loginAs(page, USERS.ana)
     await page.goto('/nfts/emerald-ape-042')
     await page
