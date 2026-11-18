@@ -1,7 +1,12 @@
 import { defineConfig, devices } from '@playwright/test'
 
 const PORT = 4173
-const baseURL = `http://localhost:${PORT}`
+/**
+ * BASE_URL runs the suite against an already deployed build (e.g. the Vercel URL) instead
+ * of building and serving locally:  BASE_URL=https://… npx playwright test
+ */
+const remoteURL = process.env.BASE_URL
+const baseURL = remoteURL ?? `http://localhost:${PORT}`
 
 /**
  * E2E runs against the optimized build with mocks enabled (same artifact as the demo deploy).
@@ -33,11 +38,13 @@ export default defineConfig({
       use: { ...devices['Pixel 7'], viewport: { width: 390, height: 844 } },
     },
   ],
-  webServer: {
-    command: 'npm run build && npm run preview',
-    url: baseURL,
-    reuseExistingServer: !process.env.CI,
-    timeout: 180_000,
-    env: { VITE_ENABLE_MOCKS: 'true' },
-  },
+  webServer: remoteURL
+    ? undefined
+    : {
+        command: 'npm run build && npm run preview',
+        url: baseURL,
+        reuseExistingServer: !process.env.CI,
+        timeout: 180_000,
+        env: { VITE_ENABLE_MOCKS: 'true' },
+      },
 })

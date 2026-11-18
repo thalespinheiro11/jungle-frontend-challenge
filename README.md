@@ -28,6 +28,18 @@ npx playwright install chromium
 | `npm run lighthouse` | Auditoria Lighthouse mobile e desktop (3 execuções por página) |
 | `npm run assets` | Converte as ilustrações de `design/assets` em WebP para `public/nfts` |
 
+## Deploy
+
+Publicado na Vercel a partir da branch `main` (framework Vite, comando `npm run build`, saída `dist`).
+O `.env.production` versionado liga os mocks no build de demonstração, então o import não exige variáveis.
+O `vercel.json` reescreve as rotas para o `index.html`, permitindo acesso direto e refresh em qualquer tela.
+
+Para rodar os testes E2E contra o site publicado:
+
+```bash
+BASE_URL=https://<url-do-deploy> npx playwright test
+```
+
 ## Variáveis de ambiente
 
 | Variável | Padrão | Descrição |

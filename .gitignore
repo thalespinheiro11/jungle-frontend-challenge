@@ -5,6 +5,7 @@ dist-ssr
 .env
 .env.*
 !.env.example
+!.env.production
 # design source export (large, kept locally)
 *.zip
 design/Frontend Challenge.png
