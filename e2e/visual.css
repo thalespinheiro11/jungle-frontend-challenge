@@ -1,0 +1,15 @@
+/* Applied only while taking visual-regression screenshots (playwright.config.ts → stylePath). */
+
+/* Toasts are transient feedback (e.g. "Bem-vindo de volta"); they're covered by functional tests. */
+[data-sonner-toaster] {
+  display: none !important;
+}
+
+/*
+ * Full-page captures freeze `position: fixed` elements at the first viewport's bottom, covering
+ * the content behind them (mobile purchase bar, bottom navigation). In screenshots they flow in
+ * the document instead, so both they and the content they would cover are compared.
+ */
+.fixed.bottom-0 {
+  position: static !important;
+}

@@ -374,6 +374,24 @@ retomada de pedido pendente; teclado e foco em diálogos; carrossel, slider e ga
 Os testes de tempo real esperam a conexão real do socket (`realtimeConnections`) em vez de
 tempos fixos. Relatório HTML em `playwright-report/` e traces apenas das falhas.
 
+### Regressão visual
+
+`e2e/visual.spec.ts` captura a página inteira de **Início, detalhe, carrinho e pagamento** em
+desktop e mobile e compara com as imagens versionadas em `e2e/visual.spec.ts-snapshots/`.
+
+- **Dados estáveis:** fixtures determinísticas e contexto limpo por teste. Antes da captura, o
+  teste espera as fontes (`document.fonts.ready`) e todas as imagens (as `lazy` são forçadas).
+  Animações e cursor ficam desligados, e `e2e/visual.css` esconde os toasts e põe as barras
+  fixas da parte de baixo no fluxo da página (numa captura de página inteira, elas cobririam o
+  conteúdo atrás).
+- **Sensibilidade calibrada:** injetando regressões de propósito, os valores padrão (1% dos
+  pixels, tolerância por pixel 0,2) deixavam passar a troca da cor primária por azul ou mostarda.
+  Com 0,1% e tolerância 0,05, as duas falham, assim como uma mudança de espaçamento no catálogo,
+  e execuções repetidas continuam com 0 px de diferença.
+- **Por sistema operacional:** a suavização de fontes muda entre Windows, macOS e Linux, então as
+  imagens levam o sufixo do SO (`-win32`). Em outro sistema, gere as referências com
+  `npm run test:e2e:update -- e2e/visual.spec.ts` e revise as imagens antes de versionar.
+
 ## 14. Performance e Lighthouse
 
 Medianas de 3 execuções (detalhes, ambiente e relatórios em [`lighthouse/`](lighthouse/README.md)):

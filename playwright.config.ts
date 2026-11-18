@@ -26,7 +26,19 @@ export default defineConfig({
     timezoneId: 'America/Sao_Paulo',
   },
   expect: {
-    toHaveScreenshot: { maxDiffPixelRatio: 0.01, animations: 'disabled' },
+    // Visual regression: CSS-pixel scale (small, comparable images on high-DPR mobile),
+    // no animations or caret, transient UI hidden by e2e/visual.css.
+    toHaveScreenshot: {
+      // Calibrated by injecting regressions: with the defaults (1% of pixels, per-pixel
+      // threshold 0.2) a full recolour of the primary colour to blue or mustard passed.
+      // 0.1% of pixels and threshold 0.05 catch both, and repeated runs stay at 0 px diff.
+      maxDiffPixelRatio: 0.001,
+      threshold: 0.05,
+      animations: 'disabled',
+      caret: 'hide',
+      scale: 'css',
+      stylePath: './e2e/visual.css',
+    },
   },
   projects: [
     {

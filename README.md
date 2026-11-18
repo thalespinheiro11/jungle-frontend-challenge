@@ -35,9 +35,14 @@ Abra http://localhost:5173 em um navegador comum (os mocks dependem de Service W
 | `npm run lint`            | ESLint                                                                                         |
 | `npm run test:e2e`        | Playwright: gera o build, sobe o preview e roda tudo em Chromium desktop (1440) e mobile (390) |
 | `npm run test:e2e:ui`     | Playwright em modo interativo                                                                  |
-| `npm run test:e2e:update` | Atualiza as imagens de referência da regressão visual                                          |
+| `npm run test:e2e:update` | Regenera as imagens de referência da regressão visual (revise antes de versionar)              |
 | `npm run lighthouse`      | Build + auditoria Lighthouse mobile e desktop (3 execuções por página)                         |
 | `npm run assets`          | Converte as ilustrações de `design/assets` em WebP para `public/nfts`                          |
+
+A suíte inclui **regressão visual** (Início, detalhe, carrinho e pagamento, desktop e mobile)
+com imagens de referência em `e2e/visual.spec.ts-snapshots/`, geradas no Windows. Em outro
+sistema operacional, gere as referências locais com `npm run test:e2e:update -- e2e/visual.spec.ts`
+(detalhes no [ARCHITECTURE.md](ARCHITECTURE.md#regressão-visual)).
 
 Rodar a suíte E2E contra o site publicado:
 
