@@ -21,5 +21,4 @@ playwright/.cache
 .idea
 .DS_Store
 *.log
-lighthouse/*/
 .tanstack

@@ -39,7 +39,9 @@ function RootLayout() {
         Pular para o conteúdo
       </a>
       <SiteHeader />
-      <main id="conteudo" tabIndex={-1} className="flex-1 outline-none">
+      {/* min-h-dvh: while a page shows skeletons, the footer stays below the fold instead of
+          appearing and then being pushed down (layout shift). */}
+      <main id="conteudo" tabIndex={-1} className="min-h-dvh flex-1 outline-none">
         <Outlet />
       </main>
       <div className={isAuthScreen ? 'hidden md:block' : undefined}>

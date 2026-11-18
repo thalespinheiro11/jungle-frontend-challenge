@@ -10,9 +10,19 @@
     />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>Kurio — Marketplace de NFTs</title>
+    <style>
+      /* Static shell painted before the JS arrives; React replaces #root content on mount. */
+      html { background: #140d0a; }
+      .app-shell { max-width: 75rem; margin: 0 auto; padding: 0 1rem; }
+      .app-shell__bar { display: flex; align-items: center; height: 75px; border-bottom: 1px solid #442c1a;
+        font: 700 0.875rem/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: 0.1em; color: #f5f1eb; }
+      @media (min-width: 1280px) { .app-shell { padding: 0; } }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div class="app-shell" aria-hidden="true"><div class="app-shell__bar">KURIO</div></div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

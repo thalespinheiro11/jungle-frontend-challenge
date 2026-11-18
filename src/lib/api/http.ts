@@ -1,6 +1,7 @@
 import axios, { AxiosError, type AxiosRequestConfig } from 'axios'
 
 import { env } from '@/lib/env'
+import { networkReady } from '@/lib/network-ready'
 
 import type { ApiErrorBody, ApiErrorCode } from './contracts'
 
@@ -85,7 +86,10 @@ export const http = axios.create({
   paramsSerializer: { indexes: null },
 })
 
-http.interceptors.request.use((config) => {
+http.interceptors.request.use(async (config) => {
+  // Requests leave only once the network layer is ready (see lib/network-ready). The 10s
+  // timeout starts in the adapter, after this wait.
+  await networkReady.wait()
   const token = getAccessToken()
   if (token) config.headers.set('Authorization', `Bearer ${token}`)
   return config

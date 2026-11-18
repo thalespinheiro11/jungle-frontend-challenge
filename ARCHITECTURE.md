@@ -184,8 +184,12 @@ Todo evento usa o mesmo envelope:
   O handler envia o ping (`"2"`) a cada 20 s.
 - O binding não expõe `auth`, salas nem namespaces: o handler lê o `40{…}` do cliente para
   descobrir o usuário e faz o roteamento por usuário manualmente.
-- O `engine.io-client` guarda `globalThis.WebSocket` quando o módulo é avaliado. Por isso o app
-  só é importado **depois** de `worker.start()` (`main.tsx`).
+- O `engine.io-client` guarda `globalThis.WebSocket` quando o módulo é avaliado. Por isso o
+  `socket.io-client` é importado sob demanda (`lib/realtime/socket.ts`), só depois do portão de
+  rede (`lib/network-ready.ts`) — quando o MSW já substituiu o `WebSocket`.
+- **Inicialização:** a interface renderiza imediatamente; o MSW sobe em paralelo. O portão de
+  rede segura as requisições do Axios e a criação do socket até os mocks estarem ativos. Ele é
+  infraestrutura pura (não responde nada nem desvia fluxo) e, sem mocks, já nasce resolvido.
 - Tudo roda na própria aba: "o servidor" é por navegador. Duas abas compartilham o banco
   (localStorage), mas eventos de uma aba não chegam a sockets de outra.
 
@@ -370,7 +374,26 @@ retomada de pedido pendente; teclado e foco em diálogos; carrossel, slider e ga
 Os testes de tempo real esperam a conexão real do socket (`realtimeConnections`) em vez de
 tempos fixos. Relatório HTML em `playwright-report/` e traces apenas das falhas.
 
-## 14. Decisões de UX e desvios do Figma
+## 14. Performance e Lighthouse
+
+Medianas de 3 execuções (detalhes, ambiente e relatórios em [`lighthouse/`](lighthouse/README.md)):
+
+| Perfil  | Página  | Performance | Accessibility | Best Practices | SEO |   LCP |   CLS |    TBT |
+| ------- | ------- | ----------: | ------------: | -------------: | --: | ----: | ----: | -----: |
+| mobile  | Início  |      **78** |           100 |            100 | 100 | 4,5 s | 0,001 | 309 ms |
+| mobile  | Detalhe |      **84** |            99 |            100 | 100 | 3,7 s | 0,000 | 250 ms |
+| desktop | Início  |          99 |           100 |            100 | 100 | 0,9 s | 0,002 |   0 ms |
+| desktop | Detalhe |          99 |           100 |            100 | 100 | 0,8 s | 0,000 |   0 ms |
+
+Abaixo da meta: **Performance no mobile**. Causa: o LCP das duas páginas é uma imagem que
+depende de dados, e os dados só saem depois que o Service Worker do MSW é registrado e ativado —
+o que acontece em toda execução, porque o Lighthouse sempre mede uma primeira visita. Sob a
+simulação de 4G lento e CPU 4×, essa cadeia vira ~4 s de LCP (contra ~0,7 s observados). Com uma
+API real, o chunk do MSW e o registro do worker saem do caminho. A análise e as otimizações
+aplicadas (CLS 0,25 → 0, FCP 2,9 → 0,8 s, chunk do MSW −65%) estão em
+[`lighthouse/README.md`](lighthouse/README.md).
+
+## 15. Decisões de UX e desvios do Figma
 
 | Onde                                    | Decisão                                                                                                      | Motivo                                                                            |
 | --------------------------------------- | ------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------- |
@@ -388,7 +411,7 @@ tempos fixos. Relatório HTML em `playwright-report/` e traces apenas das falhas
 | Mobile                                  | Toasts no topo (abaixo das barras de voltar/favoritar) e sem barra inferior em detalhe, carrinho e pagamento | Toasts e a barra cobriam as ações fixas da parte de baixo                         |
 | Imagens                                 | O Figma traz 4 ilustrações, reutilizadas em 42 NFTs; recortadas do frame e convertidas para WebP             | Não havia exportação individual em alta resolução                                 |
 
-## 15. Limitações conhecidas
+## 16. Limitações conhecidas
 
 - O "servidor" vive na aba: eventos não cruzam abas, e limpar o armazenamento do site reinicia
   os dados (equivale a `reset()`).

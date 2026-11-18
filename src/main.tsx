@@ -6,19 +6,19 @@ import './styles.css'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 
+import { App } from './app'
 import { env } from './lib/env'
+import { networkReady } from './lib/network-ready'
 
-async function bootstrap() {
+function bootstrap() {
   // Mocks are enabled by configuration (VITE_ENABLE_MOCKS), including the demo build.
+  // They start in parallel with the first render: the UI shows right away, and network calls
+  // (Axios and Socket.IO) wait on `networkReady` until the worker intercepts requests.
+  // The app is a static import (its chunks get modulepreload hints in the HTML);
+  // socket.io-client is loaded lazily after the gate, so it still sees the patched WebSocket.
   if (env.enableMocks) {
-    const { startMocking } = await import('./mocks/browser')
-    await startMocking()
+    networkReady.set(import('./mocks/browser').then(({ startMocking }) => startMocking()))
   }
-
-  // The app is imported only after MSW starts: engine.io-client (inside socket.io-client)
-  // captures `globalThis.WebSocket` at module evaluation, so it must see MSW's patched
-  // WebSocket. A static import would bypass the mocked Socket.IO server.
-  const { App } = await import('./app')
 
   createRoot(document.getElementById('root')!).render(
     <StrictMode>
@@ -27,4 +27,4 @@ async function bootstrap() {
   )
 }
 
-void bootstrap()
+bootstrap()

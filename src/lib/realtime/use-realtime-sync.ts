@@ -6,6 +6,8 @@ import { catalogKeys } from '@/features/catalog/api'
 import { applyOrderUpdated, orderKeys } from '@/features/orders/api'
 import type { Nft, NftSummary, NftUpdatedEvent, OrderUpdatedEvent, Paginated } from '@/lib/api/contracts'
 
+import type { Socket } from 'socket.io-client'
+
 import { createSocket, disposeSocket } from './socket'
 
 /** Remembers recently seen event ids so duplicates are applied at most once. */
@@ -58,7 +60,9 @@ export function useRealtimeSync(token: string | null, userId: string | null, ena
 
   useEffect(() => {
     if (!enabled) return
-    const socket = createSocket(token)
+    // Creation is async (network gate + lazy client); a cleanup that runs first cancels it.
+    let disposed = false
+    let socket: Socket | null = null
     const seen = new SeenEvents()
     let hasConnected = false
 
@@ -87,11 +91,18 @@ export function useRealtimeSync(token: string | null, userId: string | null, ena
       hasConnected = true
     }
 
-    socket.on('connect', onConnect)
-    socket.on('nft.updated', onNftUpdated)
-    socket.on('order.updated', onOrderUpdated)
-    socket.connect()
+    void createSocket(token).then((created) => {
+      if (disposed) return disposeSocket(created)
+      socket = created
+      socket.on('connect', onConnect)
+      socket.on('nft.updated', onNftUpdated)
+      socket.on('order.updated', onOrderUpdated)
+      socket.connect()
+    })
 
-    return () => disposeSocket(socket)
+    return () => {
+      disposed = true
+      if (socket) disposeSocket(socket)
+    }
   }, [queryClient, token, userId, enabled])
 }

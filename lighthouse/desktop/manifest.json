@@ -1,0 +1,80 @@
+[
+  {
+    "url": "http://localhost:4173/",
+    "isRepresentativeRun": false,
+    "htmlPath": "D:\\Frontend Challenge - Jungle Gaming\\lighthouse\\desktop\\localhost--2026_11_18_12_29_33.report.html",
+    "jsonPath": "D:\\Frontend Challenge - Jungle Gaming\\lighthouse\\desktop\\localhost--2026_11_18_12_29_33.report.json",
+    "summary": {
+      "performance": 0.99,
+      "accessibility": 1,
+      "best-practices": 1,
+      "seo": 1,
+      "agentic-browsing": 0.5
+    }
+  },
+  {
+    "url": "http://localhost:4173/",
+    "isRepresentativeRun": false,
+    "htmlPath": "D:\\Frontend Challenge - Jungle Gaming\\lighthouse\\desktop\\localhost--2026_11_18_12_29_47.report.html",
+    "jsonPath": "D:\\Frontend Challenge - Jungle Gaming\\lighthouse\\desktop\\localhost--2026_11_18_12_29_47.report.json",
+    "summary": {
+      "performance": 0.99,
+      "accessibility": 1,
+      "best-practices": 1,
+      "seo": 1,
+      "agentic-browsing": 0.5
+    }
+  },
+  {
+    "url": "http://localhost:4173/nfts/emerald-ape-042",
+    "isRepresentativeRun": false,
+    "htmlPath": "D:\\Frontend Challenge - Jungle Gaming\\lighthouse\\desktop\\localhost-nfts_emerald_ape_042-2026_11_18_12_30_14.report.html",
+    "jsonPath": "D:\\Frontend Challenge - Jungle Gaming\\lighthouse\\desktop\\localhost-nfts_emerald_ape_042-2026_11_18_12_30_14.report.json",
+    "summary": {
+      "performance": 0.99,
+      "accessibility": 1,
+      "best-practices": 1,
+      "seo": 1,
+      "agentic-browsing": 0.5
+    }
+  },
+  {
+    "url": "http://localhost:4173/nfts/emerald-ape-042",
+    "isRepresentativeRun": false,
+    "htmlPath": "D:\\Frontend Challenge - Jungle Gaming\\lighthouse\\desktop\\localhost-nfts_emerald_ape_042-2026_11_18_12_30_27.report.html",
+    "jsonPath": "D:\\Frontend Challenge - Jungle Gaming\\lighthouse\\desktop\\localhost-nfts_emerald_ape_042-2026_11_18_12_30_27.report.json",
+    "summary": {
+      "performance": 0.99,
+      "accessibility": 1,
+      "best-practices": 1,
+      "seo": 1,
+      "agentic-browsing": 0.5
+    }
+  },
+  {
+    "url": "http://localhost:4173/",
+    "isRepresentativeRun": true,
+    "htmlPath": "D:\\Frontend Challenge - Jungle Gaming\\lighthouse\\desktop\\localhost--2026_11_18_12_29_19.report.html",
+    "jsonPath": "D:\\Frontend Challenge - Jungle Gaming\\lighthouse\\desktop\\localhost--2026_11_18_12_29_19.report.json",
+    "summary": {
+      "performance": 0.99,
+      "accessibility": 1,
+      "best-practices": 1,
+      "seo": 1,
+      "agentic-browsing": 0.5
+    }
+  },
+  {
+    "url": "http://localhost:4173/nfts/emerald-ape-042",
+    "isRepresentativeRun": true,
+    "htmlPath": "D:\\Frontend Challenge - Jungle Gaming\\lighthouse\\desktop\\localhost-nfts_emerald_ape_042-2026_11_18_12_30_00.report.html",
+    "jsonPath": "D:\\Frontend Challenge - Jungle Gaming\\lighthouse\\desktop\\localhost-nfts_emerald_ape_042-2026_11_18_12_30_00.report.json",
+    "summary": {
+      "performance": 0.99,
+      "accessibility": 1,
+      "best-practices": 1,
+      "seo": 1,
+      "agentic-browsing": 0.5
+    }
+  }
+]

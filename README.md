@@ -6,6 +6,7 @@ e pagamentos simulados pelo MSW (REST + Socket.IO).
 
 - **Demo:** https://jungle-frontend-challenge-sand.vercel.app
 - **Arquitetura, contratos e decisões:** [ARCHITECTURE.md](ARCHITECTURE.md)
+- **Auditoria Lighthouse:** [lighthouse/README.md](lighthouse/README.md) — medianas em [SUMMARY.md](lighthouse/SUMMARY.md)
 
 Stack: React 19 + TypeScript, TanStack Router, TanStack Query, Axios, Socket.IO, Tailwind CSS v4,
 shadcn/ui, MSW, Playwright e Lighthouse.
