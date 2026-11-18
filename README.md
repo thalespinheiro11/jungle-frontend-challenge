@@ -30,7 +30,7 @@ npx playwright install chromium
 
 ## Deploy
 
-Publicado na Vercel a partir da branch `main` (framework Vite, comando `npm run build`, saída `dist`).
+Publicado em https://jungle-frontend-challenge-sand.vercel.app a partir da branch `main` (framework Vite, comando `npm run build`, saída `dist`).
 O `.env.production` versionado liga os mocks no build de demonstração, então o import não exige variáveis.
 O `vercel.json` reescreve as rotas para o `index.html`, permitindo acesso direto e refresh em qualquer tela.
 
